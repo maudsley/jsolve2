@@ -156,6 +156,13 @@ public class Expression {
 		return false;
 	}
 
+	static Expression equals(Expression a, Expression b) {
+		Expression equals = new Expression(Type.NODE_EQUALS);
+		equals.setLeft(a.copy());
+		equals.setRight(b.copy());
+		return equals;
+	}
+
 	static Expression add(Expression a, Expression b) {
 		Expression sum = new Expression(Type.NODE_ADD);
 		sum.setLeft(a.copy());
