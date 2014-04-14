@@ -1,8 +1,14 @@
 jsolve
 ======
 
-This is a symbolic algebra solver written in Java:
+What is this
+------------
 
-git clone https://github.com/sigint9/jsolve.git
+This is a symbolic equation solver written in Java:
 
-ant && ant run
+How to build
+------------
+
+Get the code: git clone https://github.com/sigint9/jsolve.git
+
+Build and run it: ant && ant run
