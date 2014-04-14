@@ -38,12 +38,12 @@ public class Main {
 			Expression solution = Solver.solve(tree, "x");
 			
 			if (solution == null) {
-				System.out.println("Solution: Unable to solve :(\n");
+				System.out.println("Solution: Unable to solve :(");
 			} else {
 				Expression output = new Expression(Expression.Type.NODE_EQUALS);
 				output.setLeft(new Expression("x"));
 				output.setRight(solution);
-				System.out.println("Solution: " + output.toString() + "\n");
+				System.out.println("Solution: " + output.toString());
 			}
 			
 			if (args.length == 0) {

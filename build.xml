@@ -1,0 +1,17 @@
+<project default="compile" basedir="./">
+    <target name="clean">
+        <delete dir="bin"/>
+    </target>
+    <target name="compile">
+        <mkdir dir="bin"/>
+        <javac srcdir="${basedir}" destdir="bin" includeantruntime="false"/>
+    </target>
+    <target name="run">
+        <java classname="jsolve.Main">
+            <arg value="repl"/>
+            <classpath>
+                <pathelement path="${basedir}/bin"/>
+            </classpath>
+        </java>
+    </target>
+</project>
