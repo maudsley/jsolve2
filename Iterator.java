@@ -105,7 +105,22 @@ public class Iterator {
 	}
 	
 	static class ProductCollector extends Iterator {
+		ProductCollector(int expandLimit) {
+			expandLimit_ = expandLimit;
+		}
 		void factor(Expression expression, boolean inverse) {
+			if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+				if (expression.getRight().isSymbol()) {
+					Integer exponent = Integer.parseInt(expression.getRight().toString());
+					if (exponent != null && exponent < expandLimit_) {
+						/* return x^2 as x*x in two calls */
+						for (int i = 0; i < exponent; ++i) {
+							factor(expression.getLeft(), inverse);
+						}
+						return;
+					}
+				}
+			}
 			if (inverse) {
 				Expression divide = new Expression(Expression.Type.NODE_DIVIDE);
 				divide.setLeft(new Expression("1"));
@@ -115,11 +130,12 @@ public class Iterator {
 				factors.add(expression);
 			}
 		}
+		int expandLimit_;
 		List<Expression> factors = new ArrayList<Expression>();
 	}
 	
-	static List<Expression> getFactors(Expression product) {
-		ProductCollector collector = new ProductCollector();
+	static List<Expression> getFactors(Expression product, int expandLimit) {
+		ProductCollector collector = new ProductCollector(expandLimit);
 		Iterator.productIterator(product, collector);
 		return collector.factors;
 	}

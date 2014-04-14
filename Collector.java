@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Factorizer {
+public class Collector {
 	static class ExpressionMultiple extends Expression {
 		ExpressionMultiple(Expression lhs) {
 			super(Expression.Type.NODE_MULTIPLY);
@@ -58,14 +58,14 @@ public class Factorizer {
 		Map<String, ExpressionMultiple> factors_;
 	}
 
-	static Expression factorize(Expression expression, String variable) {
+	static Expression collect(Expression expression, String variable) {
 		expression = normalizeExponents(expression);
 		Map<String, ExpressionMap> map = new HashMap<String, ExpressionMap>();
 		List<Expression> terms = Iterator.getTerms(expression);
 		for (Expression term : terms) {
 			Expression coefficient = new Expression("1");
 			Expression owner = null;
-			List<Expression> factors = Iterator.getFactors(term);
+			List<Expression> factors = Iterator.getFactors(term, 0);
 			for (Expression factor : factors) {
 				if (factor.contains(variable)) {
 					if (owner == null) {
@@ -130,7 +130,7 @@ public class Factorizer {
 		List<Expression> newTerms = new ArrayList<Expression>();
 		for (Expression term : terms) {
 			Map<String, ExpressionMultiple> exponents = new HashMap<String, ExpressionMultiple>();
-			List<Expression> factors = Iterator.getFactors(term);
+			List<Expression> factors = Iterator.getFactors(term, 0);
 			for (Expression factor : factors) {
 				if (factor.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 					if (factor.getRight().isSymbol()) {

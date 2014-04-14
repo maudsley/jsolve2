@@ -8,7 +8,7 @@ public class Expander {
 		String hash = "";
 		while (!hash.equals(expression.toString())) {
 			hash = expression.toString();
-			List<Expression> factors = Iterator.getFactors(expression);
+			List<Expression> factors = Iterator.getFactors(expression, 5);
 			for (int i = 0; i < factors.size(); ++i) {
 				Expression factor = factors.get(i);
 				if (!factor.contains(variable)) {

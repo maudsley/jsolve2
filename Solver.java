@@ -24,7 +24,7 @@ public class Solver {
 			if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
 				equation = Expander.expand(equation, variable);
 				System.out.println("Expanded: " + Expression.equals(equation, result));
-				equation = Factorizer.factorize(equation, variable);
+				equation = Collector.collect(equation, variable);
 				System.out.println("Factored: " + Expression.equals(equation, result));
 				if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
 					return null; /* unable to solve */

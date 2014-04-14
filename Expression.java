@@ -176,6 +176,13 @@ public class Expression {
 		product.setRight(b.copy());
 		return product;
 	}
+	
+	static Expression exponentiate(Expression a, Expression b) {
+		Expression product = new Expression(Type.NODE_EXPONENTIATE);
+		product.setLeft(a.copy());
+		product.setRight(b.copy());
+		return product;
+	}
 
 	Type type_;
 	Expression left_;
