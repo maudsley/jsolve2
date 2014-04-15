@@ -157,31 +157,49 @@ public class Expression {
 	}
 
 	static Expression equals(Expression a, Expression b) {
-		Expression equals = new Expression(Type.NODE_EQUALS);
-		equals.setLeft(a.copy());
-		equals.setRight(b.copy());
-		return equals;
+		Expression result = new Expression(Type.NODE_EQUALS);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
 	}
 
 	static Expression add(Expression a, Expression b) {
-		Expression sum = new Expression(Type.NODE_ADD);
-		sum.setLeft(a.copy());
-		sum.setRight(b.copy());
-		return sum;
+		Expression result = new Expression(Type.NODE_ADD);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
+	}
+	
+	static Expression subtract(Expression a, Expression b) {
+		Expression result = new Expression(Type.NODE_SUBTRACT);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
 	}
 	
 	static Expression multiply(Expression a, Expression b) {
-		Expression product = new Expression(Type.NODE_MULTIPLY);
-		product.setLeft(a.copy());
-		product.setRight(b.copy());
-		return product;
+		Expression result = new Expression(Type.NODE_MULTIPLY);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
+	}
+	
+	static Expression divide(Expression a, Expression b) {
+		Expression result = new Expression(Type.NODE_DIVIDE);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
 	}
 	
 	static Expression exponentiate(Expression a, Expression b) {
-		Expression product = new Expression(Type.NODE_EXPONENTIATE);
-		product.setLeft(a.copy());
-		product.setRight(b.copy());
-		return product;
+		Expression result = new Expression(Type.NODE_EXPONENTIATE);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
+	}
+	
+	static Expression negate(Expression x) {
+		return Expression.multiply(new Expression("-1"),  x);
 	}
 
 	Type type_;

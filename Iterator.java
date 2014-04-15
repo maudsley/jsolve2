@@ -85,12 +85,7 @@ public class Iterator {
 	static class TermCollector extends Iterator {
 		void term(Expression expression, boolean negative) {
 			if (negative) {
-				Expression negate = new Expression(Expression.Type.NODE_MINUS);
-				negate.setChild(new Expression("1"));
-				Expression multiply = new Expression(Expression.Type.NODE_MULTIPLY);
-				multiply.setLeft(negate);
-				multiply.setRight(expression);
-				terms.add(multiply);
+				terms.add(Expression.negate(expression));
 			} else {
 				terms.add(expression);
 			}
@@ -122,10 +117,7 @@ public class Iterator {
 				}
 			}
 			if (inverse) {
-				Expression divide = new Expression(Expression.Type.NODE_DIVIDE);
-				divide.setLeft(new Expression("1"));
-				divide.setRight(expression);
-				factors.add(divide);
+				factors.add(Expression.divide(new Expression("1"), expression));
 			} else {
 				factors.add(expression);
 			}

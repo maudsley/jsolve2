@@ -20,6 +20,25 @@ public class Parser {
 
 	Parser(String expression) throws Error {
 		expression_ = parseExpression(new Lexer(expression));
+		expression_ = sanitize(expression_);
+	}
+	
+	Expression sanitize(Expression expression) {
+		/* remove unary plus and minus from the expression */
+		if (Operator.isBinary(expression)) {
+			expression.setLeft(sanitize(expression.getLeft()));
+			expression.setRight(sanitize(expression.getRight()));
+		} else {
+			switch (expression.getType()) {
+			case NODE_PLUS:
+				expression = sanitize(expression.getChild());
+			case NODE_MINUS:
+				expression = Expression.negate(sanitize(expression.getChild()));
+			default:
+				break;
+			}
+		}
+		return expression;
 	}
 
 	Expression parseExpression(Lexer scanner) {
