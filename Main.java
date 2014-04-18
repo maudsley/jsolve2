@@ -20,7 +20,7 @@ public class Main {
 			}
 			
 			if (expression.isEmpty()) {
-				expression = "a*x^2 + b*x + c = 0";
+				expression = "e^x + x = 0";
 			}
 			
 			Parser parser = null;
