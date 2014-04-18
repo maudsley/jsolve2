@@ -43,8 +43,4 @@ public class Canonicalizer {
 		expression = Iterator.listSum(sort(Iterator.getTerms(expression)));
 		return expression;
 	}
-	
-	static boolean compare(Expression a, Expression b) {
-		return canonicalize(a).toString().equals(canonicalize(b).toString());
-	}
 }
