@@ -33,14 +33,23 @@ public class Canonicalizer {
 	}
 
 	static Expression canonicalize(Expression expression) {
-		if (expression.isBinary()) {
-			expression.setLeft(canonicalize(expression.getLeft()));
-			expression.setRight(canonicalize(expression.getRight()));
-		} else if (expression.isUnary()) {
-			expression.setChild(canonicalize(expression.getChild()));
+		Expression result = expression.copy();
+		if (result.isBinary()) {
+			result.setLeft(canonicalize(result.getLeft()));
+			result.setRight(canonicalize(result.getRight()));
+		} else if (result.isUnary()) {
+			result.setChild(canonicalize(expression.getChild()));
 		}
-		expression = Iterator.listProduct(sort(Iterator.getFactors(expression, 0)));
-		expression = Iterator.listSum(sort(Iterator.getTerms(expression)));
-		return expression;
+		result = Iterator.listProduct(sort(Iterator.getFactors(result, 0)));
+		result = Iterator.listSum(sort(Iterator.getTerms(result)));
+		return result;
+	}
+	
+	static String toString(Expression expression) {
+		return canonicalize(expression).toString();
+	}
+	
+	static boolean compare(Expression a, Expression b) {
+		return toString(a).equals(toString(b));
 	}
 }

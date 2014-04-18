@@ -24,6 +24,16 @@ public class Expression {
 		type_ = Type.NODE_SYMBOL;
 		symbol_ = symbol;
 	}
+	
+	Expression(Double constant) {
+		type_ = Type.NODE_SYMBOL;
+		Integer integer = constant.intValue();
+		if (constant.equals(new Double(integer))) {
+			symbol_ = integer.toString();
+		} else {
+			symbol_ = constant.toString();
+		}
+	}
 
 	Expression getLeft() {
 		return left_;

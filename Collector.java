@@ -135,7 +135,12 @@ public class Collector {
 				if (factor.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 					if (factor.getRight().isSymbol()) {
 						Expression base = factor.getLeft();
-						Integer power = Integer.parseInt(factor.getRight().getSymbol());
+						Integer power;
+						try {
+							power = Integer.parseInt(factor.getRight().getSymbol());
+						} catch (NumberFormatException e) {
+							continue;
+						}
 						ExpressionMultiple value = exponents.get(base.toString());
 						if (value == null) {
 							value = new ExpressionMultiple(base);

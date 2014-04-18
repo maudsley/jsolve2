@@ -5,7 +5,8 @@ import java.util.List;
 
 public class Substitution {
 	static Expression substitute(Expression a, Expression b, Expression c) {
-		if (a.toString().equals(b.toString())) {
+		/* substitute occurrences of expression 'b' with 'c' in expression 'a' */
+		if (Canonicalizer.compare(a, b)) {
 			return c;
 		} else if (a.isBinary()) {
 			Expression result = a.copy();
@@ -21,7 +22,23 @@ public class Substitution {
 		}
 	}
 
+	static List<Expression> candidates(Expression expression, String variable) {
+		/* return a list of subexpressions of 'expression' containing 'variable' */
+		List<Expression> result = new ArrayList<Expression>();
+		if (expression.contains(variable)) {
+			result.add(expression);
+		}
+		if (expression.isUnary()) {
+			result.addAll(candidates(expression.getChild(), variable));
+		} else if (expression.isBinary()) {
+			result.addAll(candidates(expression.getLeft(), variable));
+			result.addAll(candidates(expression.getRight(), variable));
+		}
+		return result;
+	}
+
 	static List<String> getSymbols(Expression expression) {
+		/* return a list of all symbols used in an expression */
 		List<String> result = new ArrayList<String>();
 		if (expression.isUnary()) {
 			result.addAll(getSymbols(expression.getChild()));
@@ -35,6 +52,7 @@ public class Substitution {
 	}
 
 	static String allocateVariable(Expression expression) {
+		/* generate a variable name that has not yet been used in 'expression' */
 		String[] variables = {
 			"a", "b", "c", "d", /*"e",*/ "f", "g", "h", /*"i",*/ "j", "k", "l",
 			"m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"

@@ -20,7 +20,7 @@ public class Main {
 			}
 			
 			if (expression.isEmpty()) {
-				expression = "e^x + x = 0";
+				expression = "x!/x";
 			}
 			
 			Parser parser = null;
@@ -34,12 +34,14 @@ public class Main {
 			Expression tree = parser.getExpression();
 
 			System.out.println("Input: " + tree.toString());
+			System.out.println("Simplified: " + Simplify.simplify(tree));
 
 			Expression solution = Solver.solve(tree, "x");
-			
+
 			if (solution == null) {
 				System.out.println("Solution: Unable to solve :(");
 			} else {
+				solution = Simplify.simplify(solution);
 				Expression output = new Expression(Expression.Type.NODE_EQUALS);
 				output.setLeft(new Expression("x"));
 				output.setRight(solution);
