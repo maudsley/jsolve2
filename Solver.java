@@ -23,11 +23,11 @@ public class Solver {
 			
 			if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
 				equation = Canonicalizer.canonicalize(equation);
-				System.out.println("Canonical form: " + Expression.equals(equation, result));
+				//System.out.println("Canonical form: " + Expression.equals(equation, result));
 				equation = Expander.expand(equation, variable);
-				System.out.println("Expanded: " + Expression.equals(equation, result));
+				//System.out.println("Expanded: " + Expression.equals(equation, result));
 				equation = Collector.collect(equation, variable);
-				System.out.println("Factored: " + Expression.equals(equation, result));
+				//System.out.println("Factored: " + Expression.equals(equation, result));
 				if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
 					return null; /* unable to solve */
 				}

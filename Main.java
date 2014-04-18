@@ -42,8 +42,8 @@ public class Main {
 
 			Expression tree = parser.getExpression();
 
-			System.out.println("Input: " + tree.toString());
-			System.out.println("Simplified: " + Simplify.simplify(tree));
+			//System.out.println("Input: " + tree.toString());
+			//System.out.println("Simplified: " + Simplify.simplify(tree));
 
 			Expression solution = Solver.solve(tree, "x");
 
