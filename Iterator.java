@@ -112,7 +112,7 @@ public class Iterator {
 					} catch (NumberFormatException e) {
 						exponent = null;
 					}
-					if (exponent != null && exponent < expandLimit_) {
+					if (exponent != null && exponent > 0 && exponent < expandLimit_) {
 						/* return x^2 as x*x in two calls */
 						for (int i = 0; i < exponent; ++i) {
 							factor(expression.getLeft(), inverse);

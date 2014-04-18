@@ -29,7 +29,7 @@ public class Main {
 			
 			if (expression.isEmpty()) {
 				repl = false;
-				expression = "a^0 + x = y";
+				expression = "x^2 + x^2 = y";
 			}
 			
 			Parser parser = null;

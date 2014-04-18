@@ -38,7 +38,7 @@ public class Canonicalizer {
 			result.setLeft(canonicalize(result.getLeft()));
 			result.setRight(canonicalize(result.getRight()));
 		} else if (result.isUnary()) {
-			result.setChild(canonicalize(expression.getChild()));
+			result.setChild(canonicalize(result.getChild()));
 		}
 		result = Iterator.listProduct(sort(Iterator.getFactors(result, 0)));
 		result = Iterator.listSum(sort(Iterator.getTerms(result)));
