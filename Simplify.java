@@ -27,6 +27,14 @@ public class Simplify {
 		"x!/x = (x-1)!"
 	};
 
+	static boolean checkIdentity(Expression expression, Expression identity) {
+		if (expression.getType().equals(identity.getLeft().getType())) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	static Expression applyIdentities(Expression expression, Expression subExpression) {
 		Expression result = expression.copy();
 		if (subExpression.isBinary()) {
@@ -50,8 +58,11 @@ public class Simplify {
 			} catch (Error e) {
 				continue;
 			}
+			if (!checkIdentity(result, parser.getExpression())) {
+				continue;
+			}
 			Expression match = Substitution.substitute(parser.getExpression(), new Expression("x"), subExpression);
-			if (Canonicalizer.compare(result,  match.getLeft())) {
+			if (Canonicalizer.compare(result, match.getLeft())) {
 				return match.getRight();
 			}
 		}

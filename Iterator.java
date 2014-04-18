@@ -105,7 +105,7 @@ public class Iterator {
 		}
 		void factor(Expression expression, boolean inverse) {
 			if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
-				if (expression.getRight().isSymbol()) {
+				if (expression.getRight().isSymbol() && expandLimit_ != 0) {
 					Integer exponent;
 					try {
 						exponent = Integer.parseInt(expression.getRight().toString());

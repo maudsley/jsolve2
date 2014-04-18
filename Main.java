@@ -29,7 +29,7 @@ public class Main {
 			
 			if (expression.isEmpty()) {
 				repl = false;
-				expression = "x^2 + x^2 = y";
+				expression = "(x + a)^2 - 2*x*a = y";
 			}
 			
 			Parser parser = null;
