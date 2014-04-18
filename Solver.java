@@ -32,6 +32,7 @@ public class Solver {
 						return null; /* unable to solve */
 					}
 				}
+				continue;
 			}
 			
 			if (equation.getLeft().contains(variable)) {
