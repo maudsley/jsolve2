@@ -29,7 +29,7 @@ public class Main {
 			
 			if (expression.isEmpty()) {
 				repl = false;
-				expression = "x!/x";
+				expression = "x!/x = y";
 			}
 			
 			Parser parser = null;
@@ -48,13 +48,13 @@ public class Main {
 			Expression solution = Solver.solve(tree, "x");
 
 			if (solution == null) {
-				System.out.println("Solution: Unable to solve :(");
+				System.out.println(tree.toString() + " -> Unable to solve :(");
 			} else {
 				solution = Simplify.simplify(solution);
 				Expression output = new Expression(Expression.Type.NODE_EQUALS);
 				output.setLeft(new Expression("x"));
 				output.setRight(solution);
-				System.out.println("Solution: " + output.toString());
+				System.out.println(tree.toString() + " -> " + output.toString());
 			}
 		}
 	}

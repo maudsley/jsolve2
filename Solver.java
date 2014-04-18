@@ -22,7 +22,7 @@ public class Solver {
 			}
 			
 			if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
-				equation = Canonicalizer.canonicalize(equation);
+				equation = Simplify.simplify(equation);
 				//System.out.println("Canonical form: " + Expression.equals(equation, result));
 				equation = Expander.expand(equation, variable);
 				//System.out.println("Expanded: " + Expression.equals(equation, result));
