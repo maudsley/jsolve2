@@ -30,10 +30,10 @@ public class Simplify {
 	static Expression applyIdentities(Expression expression, Expression subExpression) {
 		Expression result = expression.copy();
 		if (subExpression.isBinary()) {
-			result = applyIdentities(expression, subExpression.getLeft());
-			result = applyIdentities(expression, subExpression.getRight());
+			result = applyIdentities(result, subExpression.getLeft());
+			result = applyIdentities(result, subExpression.getRight());
 		} else if (subExpression.isUnary()) {
-			result = applyIdentities(expression, subExpression.getChild());
+			result = applyIdentities(result, subExpression.getChild());
 		}
 	
 		if (result.isBinary()) {
