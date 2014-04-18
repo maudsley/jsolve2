@@ -139,15 +139,17 @@ public class Collector {
 						try {
 							power = Integer.parseInt(factor.getRight().getSymbol());
 						} catch (NumberFormatException e) {
+							power = null;
+						}
+						if (power != null) {
+							ExpressionMultiple value = exponents.get(base.toString());
+							if (value == null) {
+								value = new ExpressionMultiple(base);
+							}
+							value.raise(power);
+							exponents.put(base.toString(), value);
 							continue;
 						}
-						ExpressionMultiple value = exponents.get(base.toString());
-						if (value == null) {
-							value = new ExpressionMultiple(base);
-						}
-						value.raise(power);
-						exponents.put(base.toString(), value);
-						continue;
 					}
 				}
 				ExpressionMultiple value = exponents.get(factor.toString());

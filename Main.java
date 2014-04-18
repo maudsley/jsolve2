@@ -29,7 +29,7 @@ public class Main {
 			
 			if (expression.isEmpty()) {
 				repl = false;
-				expression = "0.3*x+0.7*x = 2";
+				expression = "x^x = y";
 			}
 			
 			Parser parser = null;
