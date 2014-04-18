@@ -27,8 +27,10 @@ public class Solver {
 				equation = Collector.collect(equation, variable);
 				//System.out.println("Factored: " + Expression.equals(equation, result));
 				equation = Simplify.simplify(equation);
-				if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
-					return null; /* unable to solve */
+				if (equation.isBinary()) {
+					if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
+						return null; /* unable to solve */
+					}
 				}
 			}
 			
