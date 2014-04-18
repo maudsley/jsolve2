@@ -9,17 +9,26 @@ import jsolve.Parser.Error;
 public class Main {
 	public static void main(String[] args) {
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-		while (true) {
+		boolean repl = true;
+		while (repl) {
 			String expression = "";
-			if (args.length != 0) { /* issue some fake command line arguments to activate REPL */
-				try {
-					expression = bufferedReader.readLine();
-				} catch (IOException e1) {
-					break;
+			if (args.length != 0) {
+				if (args[0].equals("repl")) {
+					try {
+						expression = bufferedReader.readLine();
+					} catch (IOException e1) {
+						break;
+					}
+				} else {
+					for (String arg : args) {
+						expression += arg + " ";
+					}
+					repl = false;
 				}
 			}
 			
 			if (expression.isEmpty()) {
+				repl = false;
 				expression = "x!/x";
 			}
 			
@@ -46,10 +55,6 @@ public class Main {
 				output.setLeft(new Expression("x"));
 				output.setRight(solution);
 				System.out.println("Solution: " + output.toString());
-			}
-			
-			if (args.length == 0) {
-				break; /* we are probably debugging */
 			}
 		}
 	}
