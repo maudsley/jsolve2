@@ -39,8 +39,6 @@ public class Main {
 
 			Expression tree = parser.getExpression();
 			
-			tree = Simplify.simplify(tree);
-			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
 				result = Expander.expand(result, "x");
