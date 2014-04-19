@@ -12,24 +12,21 @@ public class Main {
 		boolean repl = true;
 		while (repl) {
 			String expression = "";
-			if (args.length != 0) {
-				if (args[0].equals("repl")) {
-					try {
-						expression = bufferedReader.readLine();
-					} catch (IOException e1) {
-						break;
-					}
-				} else {
-					for (String arg : args) {
-						expression += arg + " ";
-					}
-					repl = false;
+			if (args.length == 0) {
+				try {
+					expression = bufferedReader.readLine();
+				} catch (IOException e1) {
+					break;
+				}
+			} else {
+				repl = false;
+				for (int i = 1; i < args.length; ++i) {
+					expression += args[i] + " ";
 				}
 			}
 			
-			if (expression.isEmpty()) {
-				repl = false;
-				expression = "x^x = y";
+			if (args.length != 0 && args[0].equals("debug")) {
+				expression = "1/(1/x) = y";
 			}
 			
 			Parser parser = null;
@@ -41,10 +38,13 @@ public class Main {
 			}
 
 			Expression tree = parser.getExpression();
-
-			//System.out.println("Input: " + tree.toString());
-			//System.out.println("Simplified: " + Simplify.simplify(tree));
-
+			
+			if (args.length != 0 && args[0].equals("simplify")) {
+				Expression result = Simplify.simplify(tree);
+				System.out.println(tree.toString() + " -> " + result.toString());
+				return;
+			}
+			
 			Expression solution = Solver.solve(tree, "x");
 
 			if (solution == null) {

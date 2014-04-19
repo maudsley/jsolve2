@@ -6,76 +6,106 @@ import java.util.List;
 import jsolve.Parser.Error;
 
 public class Simplify {
-	static String[] identities = {
-		"x+0 = x",
-		"x-0 = x",
-		"0-x = -x",
-		"x-x = 0",
-		"x*0 = 0",
-		"x*1 = x",
-		"0/x = 0",
-		"x/1 = x",
-		"x/x = 1",
-		"x*1/x = 1",
-		"1/(1/x) = x",
-		"x^0 = 1",
-		"x^1 = x",
-		"0^x = 0",
-		"1^x = 1",
-		"0! = 1",
-		"x!*(x+1) = (x+1)!",
-		"x!/x = (x-1)!"
-	};
-
-	static boolean checkIdentity(Expression expression, Expression identity) {
-		if (expression.getType().equals(identity.getLeft().getType())) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	static Expression applyIdentities(Expression expression, Expression subExpression) {
-		Expression result = expression.copy();
-		if (subExpression.isBinary()) {
-			result = applyIdentities(result, subExpression.getLeft());
-			result = applyIdentities(result, subExpression.getRight());
-		} else if (subExpression.isUnary()) {
-			result = applyIdentities(result, subExpression.getChild());
-		}
+	Simplify() {
+		String[] rules = {
+			"x+0 = x",
+			"x-0 = x",
+			"0-x = -x",
+			"x-x = 0",
+			"x*0 = 0",
+			"x*1 = x",
+			"0/x = 0",
+			"x/1 = x",
+			"x/x = 1",
+			"x*1/x = 1",
+			"1/(1/x) = x",
+			"x^0 = 1",
+			"x^1 = x",
+			"0^x = 0",
+			"1^x = 1",
+			"0! = 1",
+			"x!*(x+1) = (x+1)!",
+			"x!/x = (x-1)!"
+		};
 	
-		if (result.isBinary()) {
-			result.setLeft(applyIdentities(result.getLeft(), result.getLeft()));
-			result.setRight(applyIdentities(result.getRight(), result.getRight()));
-		} else if (result.isUnary()) {
-			result.setChild(applyIdentities(result.getChild(), result.getChild()));
-		}
-		
-		for (String identity : identities) {
+		identities = new ArrayList<Expression>();
+		for (String rule : rules) {
 			Parser parser = null;
 			try {
-				parser = new Parser(identity);
+				parser = new Parser(rule);
 			} catch (Error e) {
 				continue;
 			}
-			if (!checkIdentity(result, parser.getExpression())) {
-				continue;
+			identities.add(parser.getExpression());
+		}
+	}
+
+	boolean compareOperators(Expression a, Expression b) {
+		if (a == null || b == null) {
+			return a == null && b == null;
+		}
+		boolean result = true;
+		result &= compareOperators(a.getLeft(), b.getLeft());
+		result &= compareOperators(a.getLeft(), b.getLeft());
+		result &= compareOperators(a.getLeft(), b.getLeft());
+		if (!a.getType().equals(b.getType())) {
+			result = false;
+		}
+		return result;
+	}
+
+	boolean checkIdentity(Expression expression, Expression subExpression, Expression identity) {
+		Expression variable = new Expression(Substitution.allocateVariable(expression));
+		Expression a = Substitution.substitute(expression, subExpression, variable);
+		Expression b = Substitution.substitute(identity, new Expression("x"), variable);
+		return compareOperators(a, b.getLeft());
+	}
+
+	Expression applyIdentitiesSubstitute(Expression expression, Expression subExpression) {
+		if (expression == null || subExpression == null) {
+			return expression;
+		}
+
+		Expression result = expression.copy();
+		result.setLeft(applyIdentities(expression.getLeft()));
+		result.setRight(applyIdentities(expression.getRight()));
+		result.setChild(applyIdentities(expression.getChild()));
+
+		boolean check = false;
+		for (Expression identity : identities) {
+			if (checkIdentity(expression, subExpression, identity)) {
+				check = true;
+				Expression match = Substitution.substitute(identity, new Expression("x"), subExpression);
+				if (Canonicalizer.compare(expression, match.getLeft())) {
+					return match.getRight();
+				}
 			}
-			Expression match = Substitution.substitute(parser.getExpression(), new Expression("x"), subExpression);
-			if (Canonicalizer.compare(result, match.getLeft())) {
-				return match.getRight();
-			}
+		}
+		
+		if (!check) {
+			return result;
 		}
 
 		return result;
 	}
 	
-	static Expression fold(Expression expression) {
+	Expression applyIdentities(Expression expression) {
+		if (expression != null) {
+			Expression result = expression.copy();
+			result = applyIdentitiesSubstitute(result, result.getLeft());
+			result = applyIdentitiesSubstitute(result, result.getRight());
+			result = applyIdentitiesSubstitute(result, result.getChild());
+			return result;
+		}
+		return null;
+	}
+
+	Expression fold(Expression expression) {
 		Double lhs = null;
 		Double rhs = null;
 		Double arg = null;
 		
-		expression = applyIdentities(expression, expression);
+		expression = applyIdentities(expression);
 	
 		try {
 			if (expression.isBinary()) {
@@ -122,7 +152,7 @@ public class Simplify {
 		return expression;
 	}
 	
-	static List<Expression> fold(List<Expression> expressions, Expression.Type operator) {
+	List<Expression> fold(List<Expression> expressions, Expression.Type operator) {
 		for (int i = 0; i < expressions.size(); ++i) {
 			for (int j = 0; j < expressions.size(); ++j) {
 				if (i == j) {
@@ -148,14 +178,14 @@ public class Simplify {
 		return expressions;
 	}
 	
-	static Expression simplify(Expression expression) {
+	Expression simplifyExpression(Expression expression) {
 		if (expression.isSymbol()) {
 			return expression;
 		} else if (expression.isBinary()) {
-			expression.setLeft(simplify(expression.getLeft()));
-			expression.setRight(simplify(expression.getRight()));
+			expression.setLeft(simplifyExpression(expression.getLeft()));
+			expression.setRight(simplifyExpression(expression.getRight()));
 		} else if (expression.isUnary()) {
-			expression.setChild(simplify(expression.getChild()));
+			expression.setChild(simplifyExpression(expression.getChild()));
 		}
 	
 		/* iterate while the expression keeps changing */
@@ -173,4 +203,13 @@ public class Simplify {
 	
 		return expression;
 	}
+	
+	static Expression simplify(Expression expression) {
+		Simplify simplify = new Simplify();
+		Expression result = expression.copy();
+		result = simplify.simplifyExpression(result);
+		return result;
+	}
+	
+	List<Expression> identities;
 }

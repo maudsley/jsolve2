@@ -22,6 +22,7 @@ public class Solver {
 			}
 			
 			if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
+				equation = Simplify.simplify(equation);
 				equation = Expander.expand(equation, variable);
 				//System.out.println("Expanded: " + Expression.equals(equation, result));
 				equation = Collector.collect(equation, variable);
@@ -69,11 +70,12 @@ public class Solver {
 			result.setLeft(rhs);
 			result.setRight(lhs.getRight());
 			return result;
-		case NODE_EXPONENTIATE: /* x ^ a = b -> x = b ^ -a */
+		case NODE_EXPONENTIATE: /* x ^ a = b -> x = b ^ 1/a */
 			result = new Expression(Expression.Type.NODE_EXPONENTIATE);
 			result.setLeft(rhs);
-			Expression exponent = new Expression(Expression.Type.NODE_MINUS);
-			exponent.setChild(lhs.getRight());
+			Expression exponent = new Expression(Expression.Type.NODE_DIVIDE);
+			exponent.setLeft(new Expression("1"));
+			exponent.setRight(lhs.getRight());
 			result.setRight(exponent);
 			return result;
 		default:
