@@ -5,9 +5,9 @@ import java.util.List;
 
 public class Expander {
 	static Expression expand(Expression expression, String variable) {
-		String hash = "";
-		while (!hash.equals(expression.toString())) {
-			hash = expression.toString();
+		/* iterate while the expression keeps changing */
+		String hash = Canonicalizer.toString(expression);
+		while (true) {
 			List<Expression> factors = Iterator.getFactors(expression, 5);
 			for (int i = 0; i < factors.size(); ++i) {
 				Expression factor = factors.get(i);
@@ -19,13 +19,12 @@ public class Expander {
 					continue;
 				} else if (factors.size() == 1) {
 					Expression result = null;
-					String before = factor.toString();
 					List<Expression> newTerms = new ArrayList<Expression>();
 					for (Expression term : terms) {
 						newTerms.add(expand(term, variable));
 					}
 					result = Iterator.listSum(newTerms);
-					if (before.equals(result.toString())) {
+					if (Canonicalizer.compare(result, factor)) {
 						break;
 					}
 					expression = result;
@@ -48,6 +47,11 @@ public class Expander {
 				}
 				break;
 			}
+			String newHash = Canonicalizer.toString(expression);
+			if (hash.equals(newHash)) {
+				break;
+			}
+			hash = newHash;
 		}
 		return expression;
 	}

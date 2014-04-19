@@ -165,6 +165,20 @@ public class Expression {
 		}
 		return false;
 	}
+	
+	boolean isOne() {
+		if (isSymbol()) {
+			try {
+				Double value = Double.parseDouble(getSymbol());
+				if (value == 1.0) {
+					return true;
+				}
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		}
+		return false;
+	}
 
 	static Expression equals(Expression a, Expression b) {
 		Expression result = new Expression(Type.NODE_EQUALS);

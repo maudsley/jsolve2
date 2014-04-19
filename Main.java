@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x*a + b*x";
+				expression = "a * (x - b)";
 			}
 			
 			Parser parser = null;
@@ -41,6 +41,7 @@ public class Main {
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
+				result = Expander.expand(result, "x");
 				result = Collector.collect(result, "x");
 				result = Simplify.simplify(result);
 				System.out.println(tree.toString() + " -> " + result.toString());

@@ -52,34 +52,125 @@ public class Iterator {
 		productIterator(expression, false, callback);
 	}
 	
+	static int getSign(Expression expression) {
+		int sign = 1;
+		List<Expression> factors = getFactors(expression, 0);
+		for (Expression factor : factors) {
+			if (factor.isSymbol()) {
+				Double value = 1.0;
+				try {
+					value = Double.parseDouble(factor.getSymbol());
+				} catch (NumberFormatException e) {
+				}
+				if (value < 0) {
+					sign = -sign;
+				}
+			}
+		}
+		return sign;
+	}
+	
+	static Expression getAbs(Expression expression) {
+		List<Expression> newFactors = new ArrayList<Expression>();
+		List<Expression> factors = getFactors(expression, 0);
+		for (Expression factor : factors) {
+			if (factor.isSymbol()) {
+				try {
+					Double value = Double.parseDouble(factor.getSymbol());
+					if (value != -1.0) {
+						newFactors.add(new Expression(Math.abs(value)));
+					}
+					continue;
+				} catch (NumberFormatException e) {
+				}
+			}
+			newFactors.add(factor);
+		}
+		return listProduct(newFactors);
+	}
+	
 	static Expression listSum(List<Expression> terms) {
 		if (terms.size() == 0) {
 			return new Expression("0"); /* empty sum */
 		}
-		Expression result = null;
+		List<Expression> positive = new ArrayList<Expression>();
+		List<Expression> negative = new ArrayList<Expression>();
 		for (Expression term : terms) {
+			if (getSign(term) == 1) {
+				positive.add(term);
+			} else {
+				negative.add(getAbs(term));
+			}
+		}
+		Expression result = null;
+		for (Expression term : positive) {
 			if (result == null) {
 				result = term;
 			} else {
 				result = Expression.add(result, term);
 			}
 		}
+		for (Expression term : negative) {
+			if (result == null) {
+				result = Expression.negate(term);
+			} else {
+				result = Expression.subtract(result, term);
+			}
+		}
 		return result;
+	}
+	
+	static Expression removeRecipricol(Expression expression) {
+		/* if the expression is a quotient of the form 1/f(x), return f(x) */
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+	 		if (expression.getLeft().isOne()) {
+	 			return expression.getRight();
+	 		}
+		}
+		return expression;
+	}
+	
+	static boolean hasRecipricol(Expression expression) {
+		Expression result = removeRecipricol(expression);
+		return result.toString().equals(expression.toString());
 	}
 	
 	static Expression listProduct(List<Expression> factors) {
 		if (factors.size() == 0) {
 			return new Expression("1"); /* empty product */
 		}
-		Expression result = null;
+		List<Expression> numerators = new ArrayList<Expression>();
+		List<Expression> denominators = new ArrayList<Expression>();
 		for (Expression factor : factors) {
-			if (result == null) {
-				result = factor;
+			if (!hasRecipricol(factor)) {
+				numerators.add(factor);
 			} else {
-				result = Expression.multiply(result, factor);
+				denominators.add(removeRecipricol(factor));
 			}
 		}
-		return result;
+		Expression numerator = null;
+		for (Expression factor : denominators) {
+			if (numerator == null) {
+				numerator = factor;
+			} else {
+				numerator = Expression.multiply(numerator, factor);
+			}
+		}
+		Expression denominator = null;
+		for (Expression factor : numerators) {
+			if (denominator == null) {
+				denominator = factor;
+			} else {
+				denominator = Expression.multiply(denominator, factor);
+			}
+		}
+		if (numerator == null) {
+			numerator = new Expression("1");
+		}
+		if (denominator == null) {
+			return numerator;
+		}
+		return Expression.divide(numerator, denominator);
 	}
 
 	static class TermCollector extends Iterator {

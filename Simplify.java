@@ -100,7 +100,7 @@ public class Simplify {
 		return null;
 	}
 
-	Expression fold(Expression expression) {
+	Expression foldConstants(Expression expression) {
 		Double lhs = null;
 		Double rhs = null;
 		Double arg = null;
@@ -152,30 +152,61 @@ public class Simplify {
 		return expression;
 	}
 	
-	List<Expression> fold(List<Expression> expressions, Expression.Type operator) {
-		for (int i = 0; i < expressions.size(); ++i) {
-			for (int j = 0; j < expressions.size(); ++j) {
+	Expression fold(Expression expression) {
+		/* fold sums */
+		List<Expression> terms = Iterator.getTerms(expression);
+		for (int i = 0; i < terms.size(); ++i) {
+			for (int j = 0; j < terms.size(); ++j) {
 				if (i == j) {
 					continue;
 				}
-				Expression product = new Expression(operator);
-				product.setLeft(expressions.get(i));
-				product.setRight(expressions.get(j));
-				Expression simplified = fold(product);
-				if (!Canonicalizer.compare(product,  simplified)) {
+				List<Expression> twoTerms = new ArrayList<Expression>();
+				twoTerms.add(terms.get(i));
+				twoTerms.add(terms.get(j));
+				Expression sum = Iterator.listSum(twoTerms);
+				Expression simplified = foldConstants(sum);
+				if (!sum.toString().equals(simplified.toString())) {
 					/* rebuild the list with our simplified factor */
 					List<Expression> result = new ArrayList<Expression>();
-					for (int k = 0; k < expressions.size(); ++k) {
+					for (int k = 0; k < terms.size(); ++k) {
 						if (k != i && k != j) {
-							result.add(expressions.get(k));
+							result.add(terms.get(k));
 						}
 					}
 					result.add(simplified);
-					return result;
+					return Iterator.listSum(result);
 				}
 			}
 		}
-		return expressions;
+		
+		/* fold products */
+		List<Expression> factors = Iterator.getFactors(expression, 0);
+		for (int i = 0; i < factors.size(); ++i) {
+			for (int j = 0; j < factors.size(); ++j) {
+				if (i == j) {
+					continue;
+				}
+				List<Expression> twoFactors = new ArrayList<Expression>();
+				twoFactors.add(factors.get(i));
+				twoFactors.add(factors.get(j));
+				Expression product = Iterator.listProduct(twoFactors);
+				Expression simplified = foldConstants(product);
+				if (!product.toString().equals(simplified.toString())) {
+					/* rebuild the list with our simplified factor */
+					List<Expression> result = new ArrayList<Expression>();
+					for (int k = 0; k < factors.size(); ++k) {
+						if (k != i && k != j) {
+							result.add(factors.get(k));
+						}
+					}
+					result.add(simplified);
+					return Iterator.listProduct(result);
+				}
+			}
+		}
+		
+		/* if we get here, no operations were performed */
+		return foldConstants(expression);
 	}
 	
 	Expression simplifyExpression(Expression expression) {
@@ -192,8 +223,6 @@ public class Simplify {
 		String hash = Canonicalizer.toString(expression);
 		while (true) {
 			expression = fold(expression);
-			expression = Iterator.listSum(fold(Iterator.getTerms(expression), Expression.Type.NODE_ADD));
-			expression = Iterator.listProduct(fold(Iterator.getFactors(expression, 0), Expression.Type.NODE_MULTIPLY));
 			String newHash = Canonicalizer.toString(expression);
 			if (hash.equals(newHash)) {
 				break;
