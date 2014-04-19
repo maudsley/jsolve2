@@ -132,7 +132,7 @@ public class Iterator {
 	
 	static boolean hasRecipricol(Expression expression) {
 		Expression result = removeRecipricol(expression);
-		return result.toString().equals(expression.toString());
+		return !result.toString().equals(expression.toString());
 	}
 	
 	static Expression listProduct(List<Expression> factors) {
@@ -149,7 +149,7 @@ public class Iterator {
 			}
 		}
 		Expression numerator = null;
-		for (Expression factor : denominators) {
+		for (Expression factor : numerators) {
 			if (numerator == null) {
 				numerator = factor;
 			} else {
@@ -157,7 +157,7 @@ public class Iterator {
 			}
 		}
 		Expression denominator = null;
-		for (Expression factor : numerators) {
+		for (Expression factor : denominators) {
 			if (denominator == null) {
 				denominator = factor;
 			} else {

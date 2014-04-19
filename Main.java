@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^2 - y^2";
+				expression = "x^(1/2) = 2";
 			}
 			
 			Parser parser = null;
@@ -38,6 +38,8 @@ public class Main {
 			}
 
 			Expression tree = parser.getExpression();
+			
+			tree = Simplify.simplify(tree);
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
