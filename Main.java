@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "1/(1/x) = y";
+				expression = "x*a + b*x";
 			}
 			
 			Parser parser = null;
@@ -41,8 +41,8 @@ public class Main {
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
-				result = Collector.collect(tree, "x");
-				result = Simplify.simplify(tree);
+				result = Collector.collect(result, "x");
+				result = Simplify.simplify(result);
 				System.out.println(tree.toString() + " -> " + result.toString());
 				return;
 			}
