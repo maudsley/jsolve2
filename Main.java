@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^(1/2) = 2";
+				expression = "(x + a)^3 - 3*a*x^2 - 3*a^2*x = y";
 			}
 			
 			Parser parser = null;

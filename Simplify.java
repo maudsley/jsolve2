@@ -71,19 +71,11 @@ public class Simplify {
 		result.setRight(applyIdentities(expression.getRight()));
 		result.setChild(applyIdentities(expression.getChild()));
 
-		boolean check = false;
 		for (Expression identity : identities) {
-			if (checkIdentity(expression, subExpression, identity)) {
-				check = true;
-				Expression match = Substitution.substitute(identity, new Expression("x"), subExpression);
-				if (Canonicalizer.compare(expression, match.getLeft())) {
-					return match.getRight();
-				}
+			Expression match = Substitution.substitute(identity, new Expression("x"), subExpression);
+			if (Canonicalizer.compare(expression, match.getLeft())) {
+				return match.getRight();
 			}
-		}
-		
-		if (!check) {
-			return result;
 		}
 
 		return result;
@@ -205,9 +197,6 @@ public class Simplify {
 			}
 		}
 		
-		/* if we get here, no operations were performed */
-		expression = Iterator.listSum(Iterator.getTerms(expression));
-		expression = Iterator.listProduct(Iterator.getFactors(expression, 0));
 		return foldConstants(expression);
 	}
 	
