@@ -48,6 +48,14 @@ public class Main {
 				return;
 			}
 			
+			if (args.length != 0 && args[0].equals("expand")) {
+				Expression result = Simplify.simplify(tree);
+				result = Expander.expand(result, "x");
+				result = Simplify.simplify(result);
+				System.out.println(tree.toString() + " -> " + result.toString());
+				return;
+			}
+			
 			Expression solution = Solver.solve(tree, "x");
 
 			if (solution == null) {
