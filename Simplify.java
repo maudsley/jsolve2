@@ -106,7 +106,7 @@ public class Simplify {
 		Double arg = null;
 		
 		expression = applyIdentities(expression);
-	
+
 		try {
 			if (expression.isBinary()) {
 				if (!expression.getLeft().isSymbol() || !expression.getRight().isSymbol()) {
@@ -206,6 +206,8 @@ public class Simplify {
 		}
 		
 		/* if we get here, no operations were performed */
+		expression = Iterator.listSum(Iterator.getTerms(expression));
+		expression = Iterator.listProduct(Iterator.getFactors(expression, 0));
 		return foldConstants(expression);
 	}
 	

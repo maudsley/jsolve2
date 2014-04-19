@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "a * (x - b)";
+				expression = "x^2 - y^2";
 			}
 			
 			Parser parser = null;
