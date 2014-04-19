@@ -41,6 +41,8 @@ public class Main {
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
+				result = Collector.collect(tree, "x");
+				result = Simplify.simplify(tree);
 				System.out.println(tree.toString() + " -> " + result.toString());
 				return;
 			}
