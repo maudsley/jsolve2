@@ -26,9 +26,9 @@ Multiplication is not implied, so a2 is a variable named 'a2' and not the expres
 
 The following operators are supported:
 
- + (addition)
- - (subtraction)
- * (multiplication)
- / (divison)
- ^ (exponentation)
- ! (factorial)
+ * + (addition)
+ * - (subtraction)
+ * * (multiplication)
+ * / (divison)
+ * ^ (exponentation)
+ * ! (factorial)
