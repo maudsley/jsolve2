@@ -137,6 +137,16 @@ public class Parser {
 		}
 	}
 
+	static Expression parse(String expression) {
+		Parser parser;
+		try {
+			parser = new Parser(expression);
+		} catch (Error e) {
+			return null;
+		}
+		return parser.getExpression();
+	}
+
 	Expression getExpression() {
 		return expression_;
 	}

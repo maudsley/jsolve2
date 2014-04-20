@@ -21,18 +21,38 @@ public class Solver {
 				continue;
 			}
 			
-			if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
+			/* this is where everything gets complicated */
+			if (!isSolvable(equation, variable)) {
+			
 				equation = Simplify.simplify(equation);
-				equation = Expander.expand(equation, variable);
-				//System.out.println("Expanded: " + Expression.equals(equation, result));
-				equation = Collector.collect(equation, variable);
-				//System.out.println("Factored: " + Expression.equals(equation, result));
-				equation = Simplify.simplify(equation);
-				if (equation.isBinary()) {
-					if (equation.getLeft().contains(variable) && equation.getRight().contains(variable)) {
-						return null; /* unable to solve */
-					}
+				if (isSolvable(equation, variable)) {
+					continue;
 				}
+				
+				equation = Expander.expand(equation, variable);
+				if (isSolvable(equation, variable)) {
+					continue;
+				}
+				
+				equation = Collector.collect(equation, variable);
+				if (isSolvable(equation, variable)) {
+					continue;
+				}
+				
+				equation = Simplify.simplify(equation);
+				if (isSolvable(equation, variable)) {
+					continue;
+				}
+				
+				Polynomial polynomial = new Polynomial(equation, variable);
+				if (polynomial.isValid()) {
+					equation = polynomial.factorize();
+				}
+				
+				if (!isSolvable(equation, variable)) {
+					return null; /* unable to solve */
+				}
+
 				continue;
 			}
 			
@@ -133,5 +153,14 @@ public class Solver {
 		default:
 			return null;
 		}
+	}
+	
+	static boolean isSolvable(Expression expression, String variable) {
+		if (expression.isBinary()) {
+			if (expression.getLeft().contains(variable) && expression.getRight().contains(variable)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

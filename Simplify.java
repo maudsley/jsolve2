@@ -146,7 +146,6 @@ public class Simplify {
 	
 	Expression foldSum(List<Expression> terms) {
 		for (int i = 0; i < terms.size(); ++i) {
-			terms.set(i, fold(terms.get(i)));
 			for (int j = 0; j < terms.size(); ++j) {
 				if (i == j) {
 					continue;
@@ -171,7 +170,6 @@ public class Simplify {
 	
 	Expression foldProduct(List<Expression> factors) {
 		for (int i = 0; i < factors.size(); ++i) {
-			factors.set(i, fold(factors.get(i)));
 			for (int j = 0; j < factors.size(); ++j) {
 				if (i == j) {
 					continue;
@@ -217,9 +215,34 @@ public class Simplify {
 		Expression exponent = getExponent(expression);
 		if (exponent.isOne()) {
 			return expression;
-		} else {
+		}
+
+		Expression base = getBase(expression);
+		List<Expression> factors = Iterator.getFactors(base, 0);
+		List<Expression> variables = new ArrayList<Expression>();
+		List<Expression> constants = new ArrayList<Expression>();
+		for (Expression factor : factors) {
+			if (factor.isSymbol()) {
+				try {
+					Double.parseDouble(factor.getSymbol());
+					constants.add(factor);
+					continue;
+				} catch (NumberFormatException e) {
+				}
+			}
+			variables.add(factor);
+		}
+		
+		if (constants.size() == 0) {
 			return Expression.exponentiate(getBase(expression), exponent);
 		}
+		
+		/* factor (a*b)^c into a^c*b^c, if b is a constant */
+		Expression variable = Iterator.listProduct(variables);
+		Expression lhs = Expression.exponentiate(variable, exponent);
+		Expression constant = Iterator.listProduct(constants);
+		Expression rhs = Expression.exponentiate(constant, exponent);
+		return Expression.multiply(lhs, rhs);
 	}
 	
 	Expression fold(Expression expression) {
@@ -236,12 +259,18 @@ public class Simplify {
 		/* fold sums */
 		List<Expression> terms = Iterator.getTerms(result);
 		if (terms.size() > 1) {
+			for (int i = 0; i < terms.size(); ++i) {
+				terms.set(i, foldConstants(fold(terms.get(i))));
+			}
 			result = foldSum(terms);
 		}
 		
 		/* fold products */
 		List<Expression> factors = Iterator.getFactors(result, 0);
 		if (factors.size() > 1) {
+			for (int i = 0; i < factors.size(); ++i) {
+				factors.set(i, foldConstants(fold(factors.get(i))));
+			}
 			result = foldProduct(factors);
 		}
 		
@@ -253,8 +282,11 @@ public class Simplify {
 		case NODE_ADD:
 		case NODE_SUBTRACT:
 		case NODE_MULTIPLY:
-		case NODE_DIVIDE:
 			return result;
+		case NODE_DIVIDE:
+			if (!result.getLeft().isOne()) {
+				return result;
+			}
 		default:
 			break;
 		}

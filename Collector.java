@@ -130,7 +130,7 @@ public class Collector {
 		List<Expression> newTerms = new ArrayList<Expression>();
 		for (Expression term : terms) {
 			Map<String, ExpressionMultiple> exponents = new HashMap<String, ExpressionMultiple>();
-			List<Expression> factors = Iterator.getFactors(term, 0);
+			List<Expression> factors = Iterator.getFactors(term, 5);
 			for (Expression factor : factors) {
 				if (factor.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 					if (factor.getRight().isSymbol()) {

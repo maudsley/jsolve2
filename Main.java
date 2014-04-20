@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "1/a * b * 1/c * d";
+				expression = "a*x^2 + b*x + c = 0";
 			}
 			
 			Parser parser = null;
