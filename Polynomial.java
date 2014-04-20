@@ -174,7 +174,10 @@ public class Polynomial {
 		Expression result = Parser.parse("(x + a/2)^2 - (a/2)^2");
 		result = Substitution.substitute(result, new Expression("a"), linearTerm);
 		result = Substitution.substitute(result, new Expression("x"), variable_);
-		result = Expression.add(result, normalized.getCoefficient(0));
+		Expression constantTerm = normalized.getCoefficient(0);
+		if (constantTerm != null) {
+			result = Expression.add(result, constantTerm);
+		}
 
 		/* verify the solution */
 		Expression original = Simplify.simplify(normalized.getExpression());

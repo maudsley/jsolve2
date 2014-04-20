@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(x+a)*(x+b) = y";
+				expression = "x^2 + x - 1 = 0";
 			}
 			
 			Parser parser = null;
