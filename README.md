@@ -13,8 +13,6 @@ You need 'ant' installed. Then:
 
 ant && ant run
 
-To enter the REPL
-
 How to use
 ----------
 
