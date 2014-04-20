@@ -18,6 +18,8 @@ To enter the REPL
 How to use
 ----------
 
+At the REPL, type an equation followed by ENTER. If possible, the solution will be printed.
+
 It is hardcoded to solve for the variable 'x'.
 
 Variables are strings of any length.
@@ -32,3 +34,10 @@ The following operators are supported:
  * / (divison)
  * ^ (exponentation)
  * ! (factorial)
+
+Examples
+--------
+
+a*x + b = 0
+
+a*x^2 + b*x + c = 0
