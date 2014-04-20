@@ -144,10 +144,9 @@ public class Simplify {
 		return expression;
 	}
 	
-	Expression fold(Expression expression) {
-		/* fold sums */
-		List<Expression> terms = Iterator.getTerms(expression);
+	Expression foldSum(List<Expression> terms) {
 		for (int i = 0; i < terms.size(); ++i) {
+			terms.set(i, fold(terms.get(i)));
 			for (int j = 0; j < terms.size(); ++j) {
 				if (i == j) {
 					continue;
@@ -158,22 +157,21 @@ public class Simplify {
 				Expression sum = Iterator.listSum(twoTerms);
 				Expression simplified = foldConstants(sum);
 				if (!sum.toString().equals(simplified.toString())) {
-					/* rebuild the list with our simplified factor */
-					List<Expression> result = new ArrayList<Expression>();
-					for (int k = 0; k < terms.size(); ++k) {
-						if (k != i && k != j) {
-							result.add(terms.get(k));
-						}
+					/* rebuild the list with our simplified term  */
+					terms.set(i, simplified);
+					terms.remove(j);
+					if (terms.size() > 1) {
+						return foldSum(terms);
 					}
-					result.add(simplified);
-					return Iterator.listSum(result);
 				}
 			}
 		}
-		
-		/* fold products */
-		List<Expression> factors = Iterator.getFactors(expression, 0);
+		return Iterator.listSum(terms);
+	}
+	
+	Expression foldProduct(List<Expression> factors) {
 		for (int i = 0; i < factors.size(); ++i) {
+			factors.set(i, fold(factors.get(i)));
 			for (int j = 0; j < factors.size(); ++j) {
 				if (i == j) {
 					continue;
@@ -185,31 +183,59 @@ public class Simplify {
 				Expression simplified = foldConstants(product);
 				if (!product.toString().equals(simplified.toString())) {
 					/* rebuild the list with our simplified factor */
-					List<Expression> result = new ArrayList<Expression>();
-					for (int k = 0; k < factors.size(); ++k) {
-						if (k != i && k != j) {
-							result.add(factors.get(k));
-						}
+					factors.set(i, simplified);
+					factors.remove(j);
+					if (factors.size() > 1) {
+						return foldProduct(factors);
 					}
-					result.add(simplified);
-					return Iterator.listProduct(result);
 				}
 			}
 		}
-		
-		return foldConstants(expression);
+		return Iterator.listProduct(factors);
 	}
 	
-	Expression simplifyExpression(Expression expression) {
+	Expression fold(Expression expression) {
+		if (expression == null) {
+			return null;
+		}
+		
 		if (expression.isSymbol()) {
 			return expression;
-		} else if (expression.isBinary()) {
-			expression.setLeft(simplifyExpression(expression.getLeft()));
-			expression.setRight(simplifyExpression(expression.getRight()));
-		} else if (expression.isUnary()) {
-			expression.setChild(simplifyExpression(expression.getChild()));
 		}
 	
+		Expression result = expression.copy();
+	
+		/* fold sums */
+		List<Expression> terms = Iterator.getTerms(result);
+		if (terms.size() > 1) {
+			result = foldSum(terms);
+		}
+		
+		/* fold products */
+		List<Expression> factors = Iterator.getFactors(result, 0);
+		if (factors.size() > 1) {
+			result = foldProduct(factors);
+		}
+
+		/* addition, subtraction, and their inverses already handled */
+		switch (result.getType()) {
+		case NODE_ADD:
+		case NODE_SUBTRACT:
+		case NODE_MULTIPLY:
+		case NODE_DIVIDE:
+			return result;
+		default:
+			break;
+		}
+		
+		/* recurse into other types of operator */
+		result.setLeft(fold(result.getLeft()));
+		result.setRight(fold(result.getRight()));
+		result.setChild(fold(result.getChild()));
+		return foldConstants(result);
+	}
+
+	Expression simplifyExpression(Expression expression) {	
 		/* iterate while the expression keeps changing */
 		String hash = Canonicalizer.toString(expression);
 		while (true) {
@@ -220,7 +246,6 @@ public class Simplify {
 			}
 			hash = newHash;
 		}
-	
 		return expression;
 	}
 	
