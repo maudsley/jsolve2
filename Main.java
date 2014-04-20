@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(e^x + a)^3 - 3*(e^x*a^2 + (e^(x*2)*a) = y";
+				expression = "1/a * b * 1/c * d";
 			}
 			
 			Parser parser = null;

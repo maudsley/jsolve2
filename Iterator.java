@@ -35,7 +35,9 @@ public class Iterator {
 			productIterator(expression.getRight(), inverse, callback);
 			break;
 		case NODE_DIVIDE:
-			productIterator(expression.getLeft(), inverse, callback);
+			if (!expression.getLeft().isOne()) {
+				productIterator(expression.getLeft(), inverse, callback);
+			}
 			productIterator(expression.getRight(), !inverse, callback);
 			break;
 		default:
