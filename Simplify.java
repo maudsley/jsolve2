@@ -3,8 +3,6 @@ package jsolve;
 import java.util.ArrayList;
 import java.util.List;
 
-import jsolve.Parser.Error;
-
 public class Simplify {
 	Simplify() {
 		String[] rules = {
@@ -30,13 +28,7 @@ public class Simplify {
 	
 		identities = new ArrayList<Expression>();
 		for (String rule : rules) {
-			Parser parser = null;
-			try {
-				parser = new Parser(rule);
-			} catch (Error e) {
-				continue;
-			}
-			identities.add(parser.getExpression());
+			identities.add(Parser.parse(rule));
 		}
 	}
 
