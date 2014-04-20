@@ -20,6 +20,8 @@ At the REPL, type an equation followed by ENTER. If possible, the solution will 
 
 It is hardcoded to solve for the variable 'x'.
 
+If the input is an expression, f(x), without an equals sign, the solver will assume you meant f(x) = 0.
+
 Variables are strings of any length.
 
 Multiplication is not implied, so a2 is a variable named 'a2' and not the expression a*2.
@@ -32,6 +34,8 @@ The following operators are supported:
  * / (divison)
  * ^ (exponentation)
  * ! (factorial)
+
+Functions, e.g trig functions, are not supported.
 
 Examples
 --------
