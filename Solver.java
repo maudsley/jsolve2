@@ -14,7 +14,7 @@ public class Solver {
 		}
 		
 		Expression result = new Expression("0");
-		while (!equation.isSymbol()) {
+		while (!equation.isSymbol()) {		
 			if (equation.isUnary()) {
 				result = inverseUnary(equation, result, variable);
 				equation = equation.getChild();
@@ -44,9 +44,22 @@ public class Solver {
 					continue;
 				}
 				
+				/* very rudimentary handling of rational functions */
+				if (equation.getType().equals(Expression.Type.NODE_DIVIDE)) {
+					/* f(x) / g(x) = h(x) -> f(x) = h(x) * g(x) */
+					result = Expression.multiply(result, equation.getRight());
+					equation = Expression.subtract(equation.getLeft(), result);
+					result = new Expression("0");
+					continue; /* try again */
+				}
+				
 				Polynomial polynomial = new Polynomial(equation, variable);
 				if (polynomial.isValid()) {
 					equation = polynomial.factorize();
+				}
+				
+				if (isSolvable(equation, variable)) {
+					continue;
 				}
 				
 				if (!isSolvable(equation, variable)) {
