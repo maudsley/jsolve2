@@ -194,6 +194,34 @@ public class Simplify {
 		return Iterator.listProduct(factors);
 	}
 	
+	Expression getBase(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+			return getBase(expression.getLeft());
+		}
+		return expression;
+	}
+
+	Expression getExponent(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+			Expression exponent = getExponent(expression.getLeft());
+			if (exponent.isOne()) {
+				return expression.getRight();
+			} else {
+				return Expression.multiply(expression.getRight(), exponent);
+			}
+		}
+		return new Expression("1");
+	}
+	
+	Expression foldExponential(Expression expression) {
+		Expression exponent = getExponent(expression);
+		if (exponent.isOne()) {
+			return expression;
+		} else {
+			return Expression.exponentiate(getBase(expression), exponent);
+		}
+	}
+	
 	Expression fold(Expression expression) {
 		if (expression == null) {
 			return null;
@@ -216,6 +244,9 @@ public class Simplify {
 		if (factors.size() > 1) {
 			result = foldProduct(factors);
 		}
+		
+		/* fold exponents */
+		result = foldExponential(result);
 
 		/* addition, subtraction, and their inverses already handled */
 		switch (result.getType()) {

@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(x + a)^3 - 3*a*x^2 - 3*a^2*x = y";
+				expression = "(e^x)^2 + e^(2*x)";
 			}
 			
 			Parser parser = null;
@@ -38,6 +38,11 @@ public class Main {
 			}
 
 			Expression tree = parser.getExpression();
+			
+			Expression x = Simplify.simplify(tree);
+			x = Expander.expand(x, "x");
+			x = Collector.collect(x, "x");
+			x = Simplify.simplify(x);
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
 				Expression result = Simplify.simplify(tree);
@@ -51,6 +56,7 @@ public class Main {
 			if (args.length != 0 && args[0].equals("expand")) {
 				Expression result = Simplify.simplify(tree);
 				result = Expander.expand(result, "x");
+				result = Collector.normalizeExponents(result);
 				result = Simplify.simplify(result);
 				System.out.println(tree.toString() + " -> " + result.toString());
 				return;
