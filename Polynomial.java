@@ -78,18 +78,20 @@ public class Polynomial {
 	}
 	
 	Expression getExpression() {
-		Expression result = null;
+		List<Expression> result = new ArrayList<Expression>();
 		for (Coefficient coefficient : coefficients_) {
 			Expression exponent = new Expression(coefficient.getDegree().toString());
-			Expression term = Expression.exponentiate(variable_, exponent);
-			term = Expression.multiply(coefficient.getExpression(), term);
-			if (result == null) {
-				result = term;
-			} else {
-				result = Expression.add(result, term);
+			Expression term = variable_;
+			if (!exponent.isOne()) {
+				term = Expression.exponentiate(term, exponent);
 			}
+			Expression expression = coefficient.getExpression();
+			if (!expression.isOne()) {
+				term = Expression.multiply(expression, term);
+			}
+			result.add(term);
 		}
-		return result;
+		return Iterator.listSum(result);
 	}
 	
 	boolean isValid() {
