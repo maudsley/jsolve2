@@ -40,21 +40,29 @@ public class Polynomial {
 				}
 			}
 			Coefficient result = new Coefficient();
+			result.setDegree(0);
+			result.setExpression(Iterator.listProduct(coefficients));
 			Expression variable = Iterator.listProduct(variables);
-			Long exponent = getExponent(variable);
-			variable = removeExponent(variable);
-			if (variable_ == null) {
-				variable_ = variable;
-				result.setExpression(Iterator.listProduct(coefficients));
-				result.setDegree(exponent);
-			} else if (Canonicalizer.compare(variable_, variable)) {
-				result.setExpression(Iterator.listProduct(coefficients));
-				result.setDegree(exponent);
-			} else { /* this is not a polynomial */
-				result.setExpression(term);
-				result.setDegree(1);
+			if (variables.size() != 0) {
+				Long exponent = getExponent(variable);
+				variable = removeExponent(variable);
+				if (variable_ == null) {
+					variable_ = variable;
+					result.setDegree(exponent);
+				} else if (Canonicalizer.compare(variable_, variable)) {
+					result.setDegree(exponent);
+				} else { /* this is not a polynomial */
+					result.setExpression(term);
+				}
 			}
-			coefficients_.add(result);
+			Expression currentValue = getCoefficient(result.getDegree());
+			if (currentValue == null) {
+				setCoefficient(result.getDegree(), result.getExpression());
+			} else { /* add it to the rest of the terms */
+				List<Expression> currentTerms = Iterator.getTerms(currentValue);
+				currentTerms.add(result.getExpression());
+				setCoefficient(result.getDegree(), Iterator.listSum(currentTerms));
+			}
 		}
 	}
 	
@@ -166,6 +174,7 @@ public class Polynomial {
 		Expression result = Parser.parse("(x + a/2)^2 - (a/2)^2");
 		result = Substitution.substitute(result, new Expression("a"), linearTerm);
 		result = Substitution.substitute(result, new Expression("x"), variable_);
+		result = Expression.add(result, normalized.getCoefficient(0));
 
 		/* verify the solution */
 		Expression original = Simplify.simplify(normalized.getExpression());
