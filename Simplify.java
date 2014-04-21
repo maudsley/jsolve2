@@ -261,10 +261,12 @@ public class Simplify {
 		Expression numerator = getNumerator(base);
 		Expression denominator = getDenominator(base);
 		if (numerator.getSymbolAsInteger() != null || denominator.getSymbolAsInteger() != null) {
-			/* (1/a)^b -> 1/a^b */
-			numerator = foldConstants(Expression.exponentiate(numerator, exponent));
-			denominator = foldConstants(Expression.exponentiate(denominator, exponent));
-			return Expression.divide(numerator, denominator);
+			if (!denominator.isOne()) {
+				/* (1/a)^b -> 1/a^b */
+				numerator = foldConstants(Expression.exponentiate(numerator, exponent));
+				denominator = foldConstants(Expression.exponentiate(denominator, exponent));
+				return Expression.divide(numerator, denominator);
+			}
 		}
 		
 		List<Expression> factors = Iterator.getFactors(base, 0);
