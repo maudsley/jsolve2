@@ -16,7 +16,7 @@ ant && ant run
 How to use
 ----------
 
-At the REPL, type an equation followed by ENTER. If possible, the solution will be printed.
+At the REPL, type an equation followed by ENTER. If possible, the solution(s) will be printed.
 
 It is hardcoded to solve for the variable 'x'.
 
