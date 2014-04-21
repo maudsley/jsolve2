@@ -71,7 +71,7 @@ public class Polynomial {
 			if (commonFactor == null) {
 				commonFactor = coefficient.getDegree();
 			} else {
-				commonFactor = gcd(commonFactor, coefficient.getDegree());
+				commonFactor = Simplify.gcd(commonFactor, coefficient.getDegree());
 			}
 		}
 		for (int i = 0; i < coefficients_.size(); ++i) {
@@ -83,14 +83,6 @@ public class Polynomial {
 			Expression base = getBase(variable_);
 			Long exponent = getExponent(variable_) * commonFactor;
 			variable_ = Expression.exponentiate(base, new Expression(exponent.toString()));
-		}
-	}
-	
-	long gcd(long a, long b) {
-		if (b == 0) {
-			return a;
-		} else {
-			return gcd(b, a % b);
 		}
 	}
 	

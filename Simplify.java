@@ -84,6 +84,34 @@ public class Simplify {
 		return null;
 	}
 
+	static long gcd(long a, long b) {
+		if (b == 0) {
+			return a;
+		} else {
+			return gcd(b, a % b);
+		}
+	}
+
+	Expression foldDivision(Expression lhs, Expression rhs) {
+		/* keep numbers rational */
+		Long lhsValue = lhs.getSymbolAsInteger();
+		Long rhsValue = rhs.getSymbolAsInteger();
+		if (lhsValue != null && rhsValue != null) {
+			long product = lhsValue * rhsValue;
+			lhsValue = Math.abs(lhsValue);
+			rhsValue = Math.abs(rhsValue);
+			long commonFactor = gcd(lhsValue, rhsValue);
+			lhsValue /= commonFactor;
+			rhsValue /= commonFactor;
+			lhs = new Expression(lhsValue.toString());
+			rhs = new Expression(rhsValue.toString());
+			if (product < 0) {
+				return Expression.negate(Expression.divide(lhs, rhs));
+			}
+		}
+		return Expression.divide(lhs, rhs);
+	}
+
 	Expression foldConstants(Expression expression) {
 		Double lhs = null;
 		Double rhs = null;
@@ -118,7 +146,7 @@ public class Simplify {
 		case NODE_MULTIPLY:
 			return new Expression(lhs * rhs);
 		case NODE_DIVIDE:
-			return new Expression(lhs / rhs);
+			return foldDivision(expression.getLeft(), expression.getRight());
 		case NODE_EXPONENTIATE:
 			return new Expression(Math.pow(lhs,  rhs));
 		case NODE_PLUS:
@@ -203,13 +231,42 @@ public class Simplify {
 		return new Expression("1");
 	}
 	
+	Expression getNumerator(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression.getLeft();
+		} else {
+			return expression;
+		}
+	}
+	
+	Expression getDenominator(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression.getRight();
+		} else {
+			return new Expression("1");
+		}
+	}
+	
 	Expression foldExponential(Expression expression) {
-		Expression exponent = getExponent(expression);
+		Expression exponent = fold(getExponent(expression));
 		if (exponent.isOne()) {
 			return expression;
 		}
-
-		Expression base = getBase(expression);
+		
+		Expression base = fold(getBase(expression));
+		if (base.isOne()) {
+			return base;
+		}
+		
+		Expression numerator = getNumerator(base);
+		Expression denominator = getDenominator(base);
+		if (numerator.getSymbolAsInteger() != null || denominator.getSymbolAsInteger() != null) {
+			/* (1/a)^b -> 1/a^b */
+			numerator = foldConstants(Expression.exponentiate(numerator, exponent));
+			denominator = foldConstants(Expression.exponentiate(denominator, exponent));
+			return Expression.divide(numerator, denominator);
+		}
+		
 		List<Expression> factors = Iterator.getFactors(base, 0);
 		List<Expression> variables = new ArrayList<Expression>();
 		List<Expression> constants = new ArrayList<Expression>();
@@ -276,6 +333,7 @@ public class Simplify {
 		case NODE_MULTIPLY:
 			return result;
 		case NODE_DIVIDE:
+			/* a/b becomes a*1/b, so let us see into the reciprocal */
 			if (!result.getLeft().isOne()) {
 				return result;
 			}

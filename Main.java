@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^(2*666) + x^666 = y";
+				expression = "a*x^2 + b*x + c = y";
 			}
 			
 			Parser parser = null;

@@ -37,7 +37,7 @@ public class Solver {
 
 	static List<Expression> solve(Expression expression, String variable) {
 		if (!expression.contains(variable)) {
-			return null;
+			return new ArrayList<Expression>();
 		}
 	
 		/* f(x) = y -> f(x) - y = 0 */
