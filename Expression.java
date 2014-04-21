@@ -166,6 +166,18 @@ public class Expression {
 		return false;
 	}
 	
+	Long getSymbolAsInteger() {
+		if (isSymbol()) {
+			try {
+				Long value = Long.parseLong(getSymbol());
+				return value;
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		return null;
+	}
+	
 	boolean isOne() {
 		if (isSymbol()) {
 			try {

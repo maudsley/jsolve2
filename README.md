@@ -22,6 +22,8 @@ It is hardcoded to solve for the variable 'x' and all variables are assumed to b
 
 Variable names are strings of any length and multiplication is not implied, so a2 is a variable named 'a2' and not the expression a*2.
 
+Variables with an underscore prefix are used internally and should not be used.
+
 If the input is an expression, f(x), without an equals sign, the solver will assume you meant f(x) = 0.
 
 The following operators are supported:

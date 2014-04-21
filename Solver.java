@@ -57,7 +57,7 @@ public class Solver {
 			Expression rhs = equation.getRight();
 			
 			if (lhs.isSymbol()) {
-				results.add(rhs);
+				results.add(rhs); /* this one was solved */
 				continue;
 			}
 			
@@ -70,22 +70,23 @@ public class Solver {
 			}
 
 			if (lhs.isUnary()) {
-				rhs = inverseUnary(lhs, rhs, variable);
+				List<Expression> solutions = inverseUnary(lhs, rhs, variable);
 				lhs = lhs.getChild();
-				equations.add(new Equation(lhs, rhs));
-				continue;
-			}
-			
-			if (lhs.getLeft().contains(variable)) {
-				rhs = inverseLeft(lhs, rhs, variable);
+				for (Expression solution : solutions) {
+					equations.add(new Equation(lhs, solution));
+				}
+			} else if (lhs.getLeft().contains(variable)) {
+				List<Expression> solutions = inverseLeft(lhs, rhs, variable);
 				lhs = lhs.getLeft();
-				equations.add(new Equation(lhs, rhs));
-				continue;
+				for (Expression solution : solutions) {
+					equations.add(new Equation(lhs, solution));
+				}
 			} else {
-				rhs = inverseRight(lhs, rhs, variable);
+				List<Expression> solutions = inverseRight(lhs, rhs, variable);
 				lhs = lhs.getRight();
-				equations.add(new Equation(lhs, rhs));
-				continue;
+				for (Expression solution : solutions) {
+					equations.add(new Equation(lhs, solution));
+				}
 			}
 		}
 		
@@ -187,92 +188,89 @@ public class Solver {
 		return results;
 	}
 
-	static Expression inverseLeft(Expression lhs, Expression rhs, String variable) {
-		Expression result = null;
+	static List<Expression> inverseLeft(Expression lhs, Expression rhs, String variable) {
+		List<Expression> results = new ArrayList<Expression>();
+		Expression expression = null;
 		switch (lhs.getType()) {
 		case NODE_ADD: /* x + a = b -> x = b - a */
-			result = new Expression(Expression.Type.NODE_SUBTRACT);
-			result.setLeft(rhs);
-			result.setRight(lhs.getRight());
-			return result;
+			results.add(Expression.subtract(rhs, lhs.getRight()));
+			break;
 		case NODE_SUBTRACT: /* x - a = b -> x = b + a */
-			result = new Expression(Expression.Type.NODE_ADD);
-			result.setLeft(rhs);
-			result.setRight(lhs.getRight());
-			return result;
+			results.add(Expression.add(rhs, lhs.getRight()));
+			break;
 		case NODE_MULTIPLY: /* x * a = b -> x = b / a */
-			result = new Expression(Expression.Type.NODE_DIVIDE);
-			result.setLeft(rhs);
-			result.setRight(lhs.getRight());
-			return result;
+			results.add(Expression.divide(rhs, lhs.getRight()));
+			break;
 		case NODE_DIVIDE: /* x / a = b -> x = b * a */
-			result = new Expression(Expression.Type.NODE_MULTIPLY);
-			result.setLeft(rhs);
-			result.setRight(lhs.getRight());
-			return result;
+			results.add(Expression.multiply(rhs, lhs.getRight()));
+			break;
 		case NODE_EXPONENTIATE: /* x ^ a = b -> x = b ^ 1/a */
-			result = new Expression(Expression.Type.NODE_EXPONENTIATE);
-			result.setLeft(rhs);
-			Expression exponent = new Expression(Expression.Type.NODE_DIVIDE);
-			exponent.setLeft(new Expression("1"));
-			exponent.setRight(lhs.getRight());
-			result.setRight(exponent);
-			return result;
+			Expression exponent = Expression.divide(new Expression("1"), lhs.getRight());
+			expression = Expression.exponentiate(rhs, exponent);
+			results.add(expression);
+			Long power = lhs.getRight().getSymbolAsInteger();
+			if (power != null) {
+				if (power % 2 == 0) { /* +/- sqrt(x) */
+					results.add(Expression.negate(expression));
+				}
+			}
+			break;
 		default:
-			return null;
+			break;
 		}
+		return results;
 	}
 	
-	static Expression inverseRight(Expression lhs, Expression rhs, String variable) {
-		Expression result = null;
+	static List<Expression> inverseRight(Expression lhs, Expression rhs, String variable) {
+		List<Expression> results = new ArrayList<Expression>();
+		Expression expression = null;
 		switch (lhs.getType()) {
 		case NODE_ADD: /* a + x = b -> x = b - a */
-			result = new Expression(Expression.Type.NODE_SUBTRACT);
-			result.setLeft(rhs);
-			result.setRight(lhs.getLeft());
-			return result;
+			results.add(Expression.subtract(rhs, lhs.getLeft()));
+			break;
 		case NODE_SUBTRACT: /* a - x = b -> x = a - b */
-			result = new Expression(Expression.Type.NODE_SUBTRACT);
-			result.setLeft(lhs.getLeft());
-			result.setRight(rhs);
-			return result;
+			results.add(Expression.subtract(lhs.getLeft(), rhs));
+			break;
 		case NODE_MULTIPLY: /* a * x = b -> x = b / a */
-			result = new Expression(Expression.Type.NODE_DIVIDE);
-			result.setLeft(rhs);
-			result.setRight(lhs.getLeft());
-			return result;
+			results.add(Expression.divide(rhs, lhs.getLeft()));
+			break;
 		case NODE_DIVIDE: /* a / x = b -> x = a / b */
-			result = new Expression(Expression.Type.NODE_DIVIDE);
-			result.setLeft(lhs.getLeft());
-			result.setRight(rhs);
-			return result;
+			results.add(Expression.divide(lhs.getLeft(), rhs));
+			break;
 		case NODE_EXPONENTIATE: /* a ^ x = b -> x = log_a(b) */
-			result = new Expression(Expression.Type.NODE_LOGARITHM);
-			result.setLeft(lhs.getLeft());
-			result.setRight(rhs);
-			return result;
+			expression = new Expression(Expression.Type.NODE_LOGARITHM);
+			expression.setLeft(lhs.getLeft());
+			expression.setRight(rhs);
+			results.add(expression);
+			break;
 		default:
-			return null;
+			break;
 		}
+		return results;
 	}
 	
-	static Expression inverseUnary(Expression lhs, Expression rhs, String variable) {
-		Expression result = null;
+	static List<Expression>  inverseUnary(Expression lhs, Expression rhs, String variable) {
+		List<Expression> results = new ArrayList<Expression>();
+		Expression expression = null;
 		switch (lhs.getType()) {
 		case NODE_PLUS: /* +x = b -> x = b */
-			result = rhs;
-			return result;
+			expression = rhs;
+			results.add(expression);
+			break;
 		case NODE_MINUS: /* -x = b -> x = -b */
-			result = new Expression(Expression.Type.NODE_MINUS);
-			result.setChild(rhs);
-			return result;
+			expression = new Expression(Expression.Type.NODE_MINUS);
+			expression.setChild(rhs);
+			results.add(expression);
+			break;
 		case NODE_FACTORIAL: /* x! = b -> x = InverseFactorial(b) */
-			result = new Expression(Expression.Type.NODE_FACTORIAL_INVERSE);
-			result.setChild(rhs);
-			return result;
+			expression = new Expression(Expression.Type.NODE_FACTORIAL_INVERSE);
+			expression.setChild(rhs);
+			results.add(expression);
+			break;
 		default:
-			return null;
+			break;
 		}
+		return results;
 	}
 	
 	static boolean isSolvable(Expression expression, String variable) {

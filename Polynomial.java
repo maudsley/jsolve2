@@ -201,9 +201,9 @@ public class Polynomial {
 		
 		/* complete the square */
 		Expression linearTerm = normalized.getCoefficient(1);
-		Expression result = Parser.parse("(x + a/2)^2 - (a/2)^2");
-		result = Substitution.substitute(result, new Expression("a"), linearTerm);
-		result = Substitution.substitute(result, new Expression("x"), variable_);
+		Expression result = Parser.parse("(_x + _a/2)^2 - (_a/2)^2");
+		result = Substitution.substitute(result, new Expression("_a"), linearTerm);
+		result = Substitution.substitute(result, new Expression("_x"), variable_);
 		Expression constantTerm = normalized.getCoefficient(0);
 		if (constantTerm != null) {
 			result = Expression.add(result, constantTerm);
@@ -227,12 +227,9 @@ public class Polynomial {
 		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 			List<Expression> factors = Iterator.getFactors(expression.getRight(), 0);
 			for (Expression factor : factors) {
-				if (factor.isSymbol()) {
-					try {
-						Long value = Long.parseLong(factor.getSymbol());
-						exponent *= value;
-					} catch (NumberFormatException e) {
-					}
+				Long value = factor.getSymbolAsInteger();
+				if (value != null) {
+					exponent *= value;
 				}
 			}
 		}
@@ -245,14 +242,9 @@ public class Polynomial {
 			List<Expression> newFactors = new ArrayList<Expression>();
 			List<Expression> factors = Iterator.getFactors(expression.getRight(), 0);
 			for (Expression factor : factors) {
-				if (factor.isSymbol()) {
-					try {
-						Long.parseLong(factor.getSymbol());
-						continue;
-					} catch (NumberFormatException e) {
-					}
+				if (factor.getSymbolAsInteger() == null) {
+					newFactors.add(factor);
 				}
-				newFactors.add(factor);
 			}
 			Expression newExponent = Iterator.listProduct(newFactors);
 			if (newExponent.isOne()) {
