@@ -179,6 +179,20 @@ public class Expression {
 		}
 		return false;
 	}
+	
+	boolean isZero() {
+		if (isSymbol()) {
+			try {
+				Double value = Double.parseDouble(getSymbol());
+				if (value == 0.0) {
+					return true;
+				}
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		}
+		return false;
+	}
 
 	static Expression equals(Expression a, Expression b) {
 		Expression result = new Expression(Type.NODE_EQUALS);

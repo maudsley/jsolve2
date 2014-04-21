@@ -3,6 +3,7 @@ package jsolve;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 import jsolve.Parser.Error;
 
@@ -26,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x / (x + a) = y";
+				expression = "(x - a) * (x - b) * (e^(2*x) + e^x + c) = 0";
 			}
 			
 			Parser parser = null;
@@ -57,16 +58,23 @@ public class Main {
 				return;
 			}
 			
-			Expression solution = Solver.solve(tree, "x");
+			List<Expression> solutions = Solver.solve(tree, "x");
 
-			if (solution == null) {
+			if (solutions.isEmpty()) {
 				System.out.println(tree.toString() + " -> Unable to solve :(");
-			} else {
+				return;
+			}
+			
+			for (int i = 0; i < solutions.size(); ++i) {
+				Expression solution = solutions.get(i);
 				solution = Simplify.simplify(solution);
-				Expression output = new Expression(Expression.Type.NODE_EQUALS);
-				output.setLeft(new Expression("x"));
-				output.setRight(solution);
-				System.out.println(tree.toString() + " -> " + output.toString());
+				Expression equation = Expression.equals(new Expression("x"), solution);
+				if (solutions.size() > 1) {
+					Integer count = new Integer(i + 1);
+					System.out.println(tree.toString() + " -> " + equation.toString() + " (" + count.toString() + ")");
+				} else {
+					System.out.println(tree.toString() + " -> " + equation.toString());
+				}
 			}
 		}
 	}

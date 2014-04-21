@@ -1,7 +1,9 @@
 package jsolve;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Substitution {
 	static Expression substitute(Expression a, Expression b, Expression c) {
@@ -22,19 +24,77 @@ public class Substitution {
 		}
 	}
 
-	static List<Expression> candidates(Expression expression, String variable) {
-		/* return a list of subexpressions of 'expression' containing 'variable' */
-		List<Expression> result = new ArrayList<Expression>();
-		if (expression.contains(variable)) {
-			result.add(expression);
+	static class Candidate {
+		Expression getExpression() {
+			return expression_;
 		}
-		if (expression.isUnary()) {
-			result.addAll(candidates(expression.getChild(), variable));
-		} else if (expression.isBinary()) {
-			result.addAll(candidates(expression.getLeft(), variable));
-			result.addAll(candidates(expression.getRight(), variable));
+		
+		void setExpression(Expression expression) {
+			expression_ = expression;
 		}
-		return result;
+		
+		Integer getCount() {
+			return count_;
+		}
+		
+		void setCount(Integer count) {
+			count_ = count;
+		}
+	
+		Expression expression_;
+		Integer count_;
+	};
+
+	static Expression candidate(Expression expression, String variable) {
+		Map<String, Candidate> map = new HashMap<String, Candidate>();
+		List<Expression> stack = new ArrayList<Expression>();
+		if (expression.isBinary()) {
+			stack.add(expression.getLeft());
+			stack.add(expression.getRight());
+		} else if (expression.isUnary()) {
+			stack.add(expression.getChild());
+		} else {
+			return null;
+		}
+		while (stack.size() != 0) {
+			Expression top = stack.remove(0);
+			if (top.isBinary()) {
+				stack.add(top.getLeft());
+				stack.add(top.getRight());
+			} else if (top.isUnary()) {
+				stack.add(top.getChild());
+			} else if (top.isSymbol()) {
+				continue;
+			}
+			if (top.contains(variable)) {
+				String hash = Canonicalizer.toString(top);
+				Candidate candidate = map.get(hash);
+				if (candidate == null) {
+					candidate = new Candidate();
+					candidate.setExpression(top);
+					candidate.setCount(1);
+				} else { /* seen this subexpression again */
+					candidate.setCount(candidate.getCount() + 1);
+				}
+				map.put(hash, candidate);
+			}
+		}
+		Expression newVariable = new Expression(allocateVariable(expression));
+		Candidate candidate = null;
+		for (String hash : map.keySet()) {
+			Candidate next = map.get(hash);
+			Expression substitution = substitute(expression, next.getExpression(), newVariable);
+			if (substitution.contains(variable)) {
+				continue; /* does not eliminate the original variable */
+			}
+			if (candidate == null || next.getCount() > candidate.getCount()) {
+				candidate = next;
+			}
+		}
+		if (candidate != null) {
+			return candidate.getExpression();
+		}
+		return null;
 	}
 
 	static List<String> getSymbols(Expression expression) {
