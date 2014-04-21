@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(x - a) * (x - b) * (e^(2*x) + e^x + c) = 0";
+				expression = "x^6 + a*x^3 + b = 0";
 			}
 			
 			Parser parser = null;

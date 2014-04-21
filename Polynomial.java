@@ -45,7 +45,7 @@ public class Polynomial {
 			Expression variable = Iterator.listProduct(variables);
 			if (variables.size() != 0) {
 				Long exponent = getExponent(variable);
-				variable = removeExponent(variable);
+				variable = getBase(variable);
 				if (variable_ == null) {
 					variable_ = variable;
 					result.setDegree(exponent);
@@ -63,6 +63,34 @@ public class Polynomial {
 				currentTerms.add(result.getExpression());
 				setCoefficient(result.getDegree(), Iterator.listSum(currentTerms));
 			}
+		}
+		
+		/* factor out any common multiple from the exponents */
+		Long commonFactor = null;
+		for (Coefficient coefficient : coefficients_) {
+			if (commonFactor == null) {
+				commonFactor = coefficient.getDegree();
+			} else {
+				commonFactor = gcd(commonFactor, coefficient.getDegree());
+			}
+		}
+		for (int i = 0; i < coefficients_.size(); ++i) {
+			Coefficient coefficient = coefficients_.get(i);
+			coefficient.setDegree(coefficient.getDegree() / commonFactor);
+			coefficients_.set(i, coefficient);
+		}
+		if (commonFactor > 1) {
+			Expression base = getBase(variable_);
+			Long exponent = getExponent(variable_) * commonFactor;
+			variable_ = Expression.exponentiate(base, new Expression(exponent.toString()));
+		}
+	}
+	
+	long gcd(long a, long b) {
+		if (b == 0) {
+			return a;
+		} else {
+			return gcd(b, a % b);
 		}
 	}
 	
@@ -211,7 +239,7 @@ public class Polynomial {
 		return exponent;
 	}
 	
-	private Expression removeExponent(Expression expression) {
+	private Expression getBase(Expression expression) {
 		/* remove the constant factors from the exponent: e^(2*3*x) -> e^x */
 		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 			List<Expression> newFactors = new ArrayList<Expression>();
