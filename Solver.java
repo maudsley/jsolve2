@@ -1,7 +1,9 @@
 package jsolve;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Solver {
 	static class Equation {
@@ -90,7 +92,20 @@ public class Solver {
 			}
 		}
 		
-		return results;
+		/* simplify the solutions and filter duplicates */
+		List<Expression> solutions = new ArrayList<Expression>();
+		Map<String, Boolean> duplicates = new HashMap<String, Boolean>();
+		for (int i = 0; i < results.size(); ++i) {
+			Expression solution = results.get(i);
+			solution = Simplify.simplify(solution);
+			String hash = Canonicalizer.toString(solution);
+			if (duplicates.get(hash) == null) {
+				solutions.add(solution);
+				duplicates.put(hash, true);
+			}
+		}
+		
+		return solutions;
 	}
 	
 	static int solvedCount(List<Equation> equations, String variable) {

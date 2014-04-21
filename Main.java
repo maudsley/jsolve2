@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^2 + x = y";
+				expression = "x^(2*666) + x^666 = y";
 			}
 			
 			Parser parser = null;
@@ -67,7 +67,6 @@ public class Main {
 			
 			for (int i = 0; i < solutions.size(); ++i) {
 				Expression solution = solutions.get(i);
-				solution = Simplify.simplify(solution);
 				Expression equation = Expression.equals(new Expression("x"), solution);
 				if (solutions.size() > 1) {
 					Integer count = new Integer(i + 1);
