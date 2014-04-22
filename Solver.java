@@ -170,11 +170,6 @@ public class Solver {
 		}
 		
 		lhs = Collector.collect(lhs, variable);
-		if (isSolvable(lhs, variable)) {
-			results.add(new Equation(lhs, rhs));
-			return results;
-		}
-		
 		lhs = Simplify.simplify(lhs);
 		if (isSolvable(lhs, variable)) {
 			results.add(new Equation(lhs, rhs));

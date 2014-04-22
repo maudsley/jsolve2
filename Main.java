@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(a*x^2 + b*x) / x = y";
+				expression = "x^x=y";
 			}
 			
 			Parser parser = null;
@@ -62,7 +62,7 @@ public class Main {
 
 			if (solutions.isEmpty()) {
 				System.out.println(tree.toString() + " -> Unable to solve :(");
-				return;
+				continue;
 			}
 			
 			for (int i = 0; i < solutions.size(); ++i) {
