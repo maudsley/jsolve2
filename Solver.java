@@ -37,17 +37,19 @@ public class Solver {
 
 	static List<Expression> solve(Expression expression, String variable) {
 		if (!expression.contains(variable)) {
+			/* asked to solve for a variable that does not appear in the equation */
+			return new ArrayList<Expression>();
+		}
+	
+		if (!expression.getType().equals(Expression.Type.NODE_EQUALS)) {
+			/* asked to solve but the input is not an equation */
 			return new ArrayList<Expression>();
 		}
 	
 		/* f(x) = y -> f(x) - y = 0 */
 		Equation equation = new Equation();
 		equation.setRight(new Expression("0"));
-		if (expression.getType().equals(Expression.Type.NODE_EQUALS)) {
-			equation.setLeft(Expression.subtract(expression.getLeft(), expression.getRight()));
-		} else {
-			equation.setLeft(expression);
-		}
+		equation.setLeft(Expression.subtract(expression.getLeft(), expression.getRight()));
 	
 		List<Expression> results = new ArrayList<Expression>();
 		List<Equation> equations = new ArrayList<Equation>();

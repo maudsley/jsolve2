@@ -8,7 +8,6 @@
     </target>
     <target name="run">
         <java classname="jsolve.Main">
-            <arg value="repl"/>
             <classpath>
                 <pathelement path="${basedir}/bin"/>
             </classpath>

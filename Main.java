@@ -3,6 +3,7 @@ package jsolve;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import jsolve.Parser.Error;
@@ -35,33 +36,43 @@ public class Main {
 				parser = new Parser(expression);
 			} catch (Error e) {
 				System.out.println(e.getMessage());
-				return;
+				continue;
 			}
 
-			Expression tree = parser.getExpression();
+			Expression input = parser.getExpression();
+
+			boolean simplify = false;
 			
 			if (args.length != 0 && args[0].equals("simplify")) {
-				Expression result = Simplify.simplify(tree);
+				simplify = true;
+			}
+			
+			if (!input.getType().equals(Expression.Type.NODE_EQUALS)) {
+				simplify = true;
+			}
+			
+			if (simplify) {
+				Expression result = Simplify.simplify(input);
 				result = Expander.expand(result, "x");
 				result = Collector.collect(result, "x");
 				result = Simplify.simplify(result);
-				System.out.println(tree.toString() + " -> " + result.toString());
-				return;
+				System.out.println(input.toString() + " -> " + result.toString());
+				continue;
 			}
 			
 			if (args.length != 0 && args[0].equals("expand")) {
-				Expression result = Simplify.simplify(tree);
+				Expression result = Simplify.simplify(input);
 				result = Expander.expand(result, "x");
 				result = Collector.normalizeExponents(result);
 				result = Simplify.simplify(result);
-				System.out.println(tree.toString() + " -> " + result.toString());
-				return;
+				System.out.println(input.toString() + " -> " + result.toString());
+				continue;
 			}
 			
-			List<Expression> solutions = Solver.solve(tree, "x");
+			List<Expression> solutions = Solver.solve(input, "x");
 
 			if (solutions.isEmpty()) {
-				System.out.println(tree.toString() + " -> Unable to solve :(");
+				System.out.println(input.toString() + " -> Unable to solve :(");
 				continue;
 			}
 			
@@ -70,9 +81,9 @@ public class Main {
 				Expression equation = Expression.equals(new Expression("x"), solution);
 				if (solutions.size() > 1) {
 					Integer count = new Integer(i + 1);
-					System.out.println(tree.toString() + " -> " + equation.toString() + " (" + count.toString() + ")");
+					System.out.println(input.toString() + " -> " + equation.toString() + " (" + count.toString() + ")");
 				} else {
-					System.out.println(tree.toString() + " -> " + equation.toString());
+					System.out.println(input.toString() + " -> " + equation.toString());
 				}
 			}
 		}
