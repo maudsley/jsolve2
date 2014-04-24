@@ -178,6 +178,18 @@ public class Expression {
 		return null;
 	}
 	
+	Double getSymbolAsFloat() {
+		if (isSymbol()) {
+			try {
+				Double value = Double.parseDouble(getSymbol());
+				return value;
+			} catch (NumberFormatException e) {
+				return null;
+			}
+		}
+		return null;
+	}
+	
 	boolean isOne() {
 		if (isSymbol()) {
 			try {

@@ -269,6 +269,16 @@ public class Simplify {
 			}
 		}
 		
+		if (base.isSymbol()) {
+			if (base.getSymbol().equals("i")) {
+				Long power = exponent.getSymbolAsInteger();
+				if (power != null) {
+					String[] powers = {"1", "i", "-1", "-i"};
+					return new Expression(powers[power.intValue()%4]);
+				}
+			}
+		}
+		
 		List<Expression> factors = Iterator.getFactors(base, 0);
 		List<Expression> variables = new ArrayList<Expression>();
 		List<Expression> constants = new ArrayList<Expression>();
