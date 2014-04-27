@@ -97,6 +97,10 @@ public class Polynomial {
 		}
 	}
 	
+	Expression getVariable() {
+		return variable_;
+	}
+	
 	Expression getExpression() {
 		List<Expression> result = new ArrayList<Expression>();
 		for (Coefficient coefficient : coefficients_) {
@@ -180,37 +184,6 @@ public class Polynomial {
 		}
 		result.coefficients_ = newCoefficients;
 		return result;		
-	}
-	
-	Expression factorize() {
-		/* can only handle quadratic polynomials */
-		if (getDegree() != 2) {
-			return getExpression();
-		}
-		
-		/* divide by the leading coefficient */
-		Polynomial normalized = divide(getCoefficient(getDegree()));
-		
-		/* complete the square */
-		Expression linearTerm = normalized.getCoefficient(1);
-		Expression result = Parser.parse("(_x + _a/2)^2 - (_a/2)^2");
-		result = Substitution.substitute(result, new Expression("_a"), linearTerm);
-		result = Substitution.substitute(result, new Expression("_x"), variable_);
-		Expression constantTerm = normalized.getCoefficient(0);
-		if (constantTerm != null) {
-			result = Expression.add(result, constantTerm);
-		}
-
-		/* verify the solution */
-		Expression original = Simplify.simplify(normalized.getExpression());
-		Expression expanded = Expander.expand(result, variableName_);
-		expanded = Collector.collect(expanded, variableName_);
-		expanded = Simplify.simplify(expanded);
-		if (Canonicalizer.compare(original, expanded)) {
-			return result; /* it worked */
-		}
-
-		return getExpression(); /* it failed */
 	}
 	
 	private long getExponent(Expression expression) {

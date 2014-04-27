@@ -116,7 +116,12 @@ public class Expression {
 	
 	public String toString() {
 		if (isSymbol()) {
-			return getSymbol();
+			Double value = getSymbolAsFloat();
+			if (value != null && value < 0) {
+				return "(" + getSymbol() + ")";
+			} else {
+				return getSymbol();
+			}
 		} else if (isUnary()) {
 			String child = getChild().toString();
 			switch (getType()) {

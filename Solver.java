@@ -158,6 +158,12 @@ public class Solver {
 				return results;
 			}
 		}
+		
+		lhs = solvePolynomial(lhs, variable);
+		if (isSolvable(lhs, variable)) {
+			results.add(new Equation(lhs, rhs));
+			return results;
+		}
 
 		lhs = Simplify.simplify(lhs);
 		if (isSolvable(lhs, variable)) {
@@ -172,6 +178,11 @@ public class Solver {
 		}
 		
 		lhs = Collector.collect(lhs, variable);
+		if (isSolvable(lhs, variable)) {
+			results.add(new Equation(lhs, rhs));
+			return results;
+		}
+		
 		lhs = Simplify.simplify(lhs);
 		if (isSolvable(lhs, variable)) {
 			results.add(new Equation(lhs, rhs));
@@ -187,17 +198,136 @@ public class Solver {
 			return results;
 		}
 		
-		Polynomial polynomial = new Polynomial(lhs, variable);
-		if (polynomial.isValid()) {
-			lhs = polynomial.factorize();
+		if (isSolvable(lhs, variable)) {
+			results.add(new Equation(lhs, rhs));
+			return results;
 		}
 		
+		lhs = solvePolynomial(lhs, variable);
 		if (isSolvable(lhs, variable)) {
 			results.add(new Equation(lhs, rhs));
 			return results;
 		}
 		
 		return results;
+	}
+	
+	static Expression solvePolynomial(Expression expression, String variable) {
+		Polynomial polynomial = new Polynomial(expression, variable);
+		if (!polynomial.isValid()) {
+			return expression;
+		}
+
+		Long degree = polynomial.getDegree();
+		if (degree > 3) {
+			return expression;
+		}
+		
+		/* divide by the leading coefficient */
+		polynomial = polynomial.divide(polynomial.getCoefficient(polynomial.getDegree()));
+		
+		if (degree == 2) {
+			Expression result = solveQuadratic(polynomial, variable);
+			if (result != null) {
+				return result;
+			} else {
+				return expression;
+			}
+		}
+		
+		/* if necessary, this substitution will eliminate the n-1 degree term */
+		Expression term = polynomial.getCoefficient(degree - 1);		
+		if (term != null) {
+			term = Expression.divide(term, new Expression(degree.toString()));
+			Expression newVariable = Expression.subtract(polynomial.getVariable(), term);
+			Expression newExpression = Substitution.substitute(polynomial.getExpression(), new Expression(variable), newVariable);
+			newExpression = Simplify.simplify(newExpression);
+			newExpression = Expander.expand(newExpression, variable);
+			newExpression = Collector.collect(newExpression, variable);
+			newExpression = Simplify.simplify(newExpression);
+			polynomial = new Polynomial(newExpression, variable);
+			if (!polynomial.isValid()) {
+				return expression;
+			} else if (polynomial.getDegree() < degree) {
+				return polynomial.getExpression(); /* unexpected, but apparently the problem got simpler */
+			} else if (polynomial.getDegree() > degree) {
+				return expression; /* unexpected and the problem got more difficult */
+			} else if (polynomial.getCoefficient(degree-1) != null) {
+				return expression; /* failed to eliminate the n-1 term */
+			}
+		}
+		
+		if (degree != 3) {
+			return expression;
+		}
+		
+		Expression result = solveCubic(polynomial, variable);
+		if (result == null) {
+			return expression;
+		}
+		
+		if (term != null) {
+			result = Expression.add(result, term);
+		}
+		
+		return result;
+	}
+	
+	static Expression solveQuadratic(Polynomial polynomial, String variable) {
+		/* complete the square */
+		Expression linearTerm = polynomial.getCoefficient(1);
+		Expression result = Parser.parse("(_x + _a/2)^2 - (_a/2)^2");
+		result = Substitution.substitute(result, new Expression("_a"), linearTerm);
+		result = Substitution.substitute(result, new Expression("_x"), polynomial.getVariable());
+		Expression constantTerm = polynomial.getCoefficient(0);
+		if (constantTerm != null) {
+			result = Expression.add(result, constantTerm);
+		}
+
+		/* verify the solution */
+		Expression original = Simplify.simplify(polynomial.getExpression());
+		Expression expanded = Expander.expand(result, variable);
+		expanded = Collector.collect(expanded, variable);
+		expanded = Simplify.simplify(expanded);
+		if (Canonicalizer.compare(original, expanded)) {
+			return result; /* it worked */
+		}
+
+		return null; /* it failed */
+	}
+	
+	static Expression solveCubic(Polynomial polynomial, String variable) {
+		/* make Vieta's substitution */
+		Expression linear = polynomial.getCoefficient(1);
+		Expression sub = Parser.parse("_x - _a/3*_x^(-1)");
+		sub = Substitution.substitute(sub, new Expression("_a"), linear);
+		sub = Substitution.substitute(sub, new Expression("_x"), polynomial.getVariable());
+		sub = Substitution.substitute(polynomial.getExpression(), new Expression(variable), sub);
+		
+		/* clearing the denominator turns this into a quadratic in x^3 */
+		Expression x3 = Expression.exponentiate(polynomial.getVariable(), new Expression("3"));
+		sub = Expression.multiply(sub, x3);
+		sub = Simplify.simplify(sub);
+		sub = Expander.expand(sub, variable);
+		sub = Collector.collect(sub, variable);
+		sub = Simplify.simplify(sub);
+		polynomial = new Polynomial(sub, variable);
+		
+		if (!polynomial.isValid()) {
+			return null;
+		}
+		
+		if (polynomial.getDegree() == 1) {
+			return polynomial.getExpression();
+		}
+		
+		if (polynomial.getDegree() != 2) {
+			return null;
+		}
+		
+		Expression result = solveQuadratic(polynomial, variable);
+		
+		return result;
 	}
 
 	static List<Expression> inverseLeft(Expression lhs, Expression rhs, String variable) {

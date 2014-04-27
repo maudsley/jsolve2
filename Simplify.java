@@ -83,6 +83,27 @@ public class Simplify {
 		}
 		return null;
 	}
+	
+	Expression applyIdentitiesFast(Expression expression) {
+		for (Expression identity : identities) {
+			if (expression.isBinary()) {
+				Expression matchLeft = Substitution.substitute(identity, new Expression("x"), expression.getLeft());
+				if (Canonicalizer.compare(expression, matchLeft.getLeft())) {
+					return matchLeft.getRight();
+				}
+				Expression matchRight = Substitution.substitute(identity, new Expression("x"), expression.getRight());
+				if (Canonicalizer.compare(expression, matchRight.getLeft())) {
+					return matchRight.getRight();
+				}
+			} else if (expression.isUnary()) {
+				Expression matchCild = Substitution.substitute(identity, new Expression("x"), expression.getChild());
+				if (Canonicalizer.compare(expression, matchCild.getLeft())) {
+					return matchCild.getRight();
+				}
+			}
+		}
+		return expression;
+	}
 
 	static long gcd(long a, long b) {
 		if (b == 0) {
@@ -117,7 +138,8 @@ public class Simplify {
 		Double rhs = null;
 		Double arg = null;
 		
-		expression = applyIdentities(expression);
+		//expression = applyIdentities(expression);
+		expression = applyIdentitiesFast(expression);
 
 		try {
 			if (expression.isBinary()) {
@@ -248,6 +270,8 @@ public class Simplify {
 	}
 	
 	Expression foldExponential(Expression expression) {
+		expression = applyIdentitiesFast(expression);
+	
 		Expression exponent = fold(getExponent(expression));
 		if (exponent.isOne()) {
 			return expression;
@@ -303,7 +327,7 @@ public class Simplify {
 		Expression lhs = Expression.exponentiate(variable, exponent);
 		Expression constant = Iterator.listProduct(constants);
 		Expression rhs = Expression.exponentiate(constant, exponent);
-		return Expression.multiply(lhs, rhs);
+		return Expression.multiply(foldConstants(lhs), foldConstants(rhs));
 	}
 	
 	Expression fold(Expression expression) {
@@ -336,6 +360,7 @@ public class Simplify {
 		}
 		
 		/* fold exponents */
+		result = Collector.normalizeExponents(result);
 		result = foldExponential(result);
 
 		/* addition, subtraction, and their inverses already handled */

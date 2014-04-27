@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^x=y";
+				expression = "x^3 + x^2 + x = y";
 			}
 			
 			Parser parser = null;
