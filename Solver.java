@@ -354,9 +354,9 @@ public class Solver {
 				results.add(expression);
 			} else {
 				for (long i = 1; i <= exponent; ++i) {
-					Expression pi = new Expression("Pi");
 					Long denominator = new Long(i);
-					Expression theta = Expression.divide(pi, new Expression(denominator.toString()));
+					Expression pi2 = Expression.multiply(new Expression("2"), new Expression("Pi"));
+					Expression theta = Expression.divide(pi2, new Expression(denominator.toString()));
 					Expression root = Expression.exponentiate(Expression.exponentiate(theta), lhs.getRight());
 					results.add(Expression.multiply(expression, root));
 				}
