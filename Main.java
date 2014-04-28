@@ -76,6 +76,11 @@ public class Main {
 			}
 			
 			for (int i = 0; i < solutions.size(); ++i) {
+				if (i == 2) {
+					Long count = new Long(solutions.size());
+					System.out.println(input.toString() + " -> (2 of " + count.toString() + " solutions)");
+					break;
+				}
 				Expression solution = solutions.get(i);
 				Expression equation = Expression.equals(new Expression("x"), solution);
 				if (solutions.size() > 1) {
