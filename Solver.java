@@ -347,13 +347,18 @@ public class Solver {
 			results.add(Expression.multiply(rhs, lhs.getRight()));
 			break;
 		case NODE_EXPONENTIATE: /* x ^ a = b -> x = b ^ 1/a */
-			Expression exponent = Expression.divide(new Expression("1"), lhs.getRight());
-			expression = Expression.exponentiate(rhs, exponent);
-			results.add(expression);
-			Long power = lhs.getRight().getSymbolAsInteger();
-			if (power != null) {
-				if (power % 2 == 0) { /* +/- sqrt(x) */
-					results.add(Expression.negate(expression));
+			Long exponent = lhs.getRight().getSymbolAsInteger();
+			Expression inverse = Expression.divide(new Expression("1"), lhs.getRight());
+			expression = Expression.exponentiate(rhs, inverse);
+			if (exponent == null) {
+				results.add(expression);
+			} else {
+				for (long i = 1; i <= exponent; ++i) {
+					Expression pi = new Expression("Pi");
+					Long denominator = new Long(i);
+					Expression theta = Expression.divide(pi, new Expression(denominator.toString()));
+					Expression root = Expression.exponentiate(Expression.exponentiate(theta), lhs.getRight());
+					results.add(Expression.multiply(expression, root));
 				}
 			}
 			break;

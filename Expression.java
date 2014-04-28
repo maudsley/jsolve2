@@ -13,7 +13,9 @@ public class Expression {
 		NODE_MINUS,
 		NODE_FACTORIAL,
 		NODE_FACTORIAL_INVERSE,
-		NODE_LOGARITHM
+		NODE_LOGARITHM,
+		NODE_SINE,
+		NODE_COSINE
 	}
 
 	Expression(Type type) {
@@ -132,7 +134,11 @@ public class Expression {
 			case NODE_FACTORIAL:
 				return "(" + child + "!)";
 			case NODE_FACTORIAL_INVERSE:
-				return "(InverseFactorial(" + child + "))";
+				return "InverseFactorial(" + child + ")";
+			case NODE_SINE:
+				return "Sin(" + child + ")";
+			case NODE_COSINE:
+				return "Cos(" + child + ")";
 			default:
 				return "(?" + child + ")";
 			}
@@ -262,6 +268,17 @@ public class Expression {
 		Expression result = new Expression(Type.NODE_EXPONENTIATE);
 		result.setLeft(a);
 		result.setRight(b);
+		return result;
+	}
+
+	static Expression exponentiate(Expression x) {
+		/* complex exponentiation */
+		Expression cos = new Expression(Expression.Type.NODE_COSINE);
+		cos.setChild(x);
+		Expression sin = new Expression(Expression.Type.NODE_SINE);
+		sin.setChild(x);
+		Expression isin = Expression.multiply(new Expression("i"), sin);
+		Expression result = Expression.add(cos, isin);
 		return result;
 	}
 	
