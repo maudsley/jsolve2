@@ -159,10 +159,12 @@ public class Solver {
 			}
 		}
 		
-		lhs = solvePolynomial(lhs, variable);
-		if (isSolvable(lhs, variable)) {
-			results.add(new Equation(lhs, rhs));
-			return results;
+		Polynomial polynomial = new Polynomial(Expression.subtract(lhs, rhs), variable);
+		if (polynomial.isValid()) {
+			List<Equation> roots = solvePolynomial(polynomial, variable);
+			if (!roots.isEmpty()) {
+				return roots;
+			}
 		}
 
 		lhs = Simplify.simplify(lhs);
@@ -203,35 +205,35 @@ public class Solver {
 			return results;
 		}
 		
-		lhs = solvePolynomial(lhs, variable);
-		if (isSolvable(lhs, variable)) {
-			results.add(new Equation(lhs, rhs));
-			return results;
+		polynomial = new Polynomial(Expression.subtract(lhs, rhs), variable);
+		if (polynomial.isValid()) {
+			List<Equation> roots = solvePolynomial(polynomial, variable);
+			if (!roots.isEmpty()) {
+				return roots;
+			}
 		}
 		
 		return results;
 	}
 	
-	static Expression solvePolynomial(Expression expression, String variable) {
-		Polynomial polynomial = new Polynomial(expression, variable);
-		if (!polynomial.isValid()) {
-			return expression;
-		}
-
+	static List<Equation> solvePolynomial(Polynomial polynomial, String variable) {
+		List<Equation> results = new ArrayList<Equation>();
+	
 		Long degree = polynomial.getDegree();
 		if (degree > 3) {
-			return expression;
+			return results;
 		}
 		
 		/* divide by the leading coefficient */
 		polynomial = polynomial.divide(polynomial.getCoefficient(polynomial.getDegree()));
 		
 		if (degree == 2) {
-			Expression result = solveQuadratic(polynomial, variable);
-			if (result != null) {
-				return result;
+			Expression factored = solveQuadratic(polynomial, variable);
+			if (factored == null) {
+				return results;
 			} else {
-				return expression;
+				results.add(new Equation(factored, new Expression("0")));
+				return results;
 			}
 		}
 		
@@ -247,30 +249,28 @@ public class Solver {
 			newExpression = Simplify.simplify(newExpression);
 			polynomial = new Polynomial(newExpression, variable);
 			if (!polynomial.isValid()) {
-				return expression;
-			} else if (polynomial.getDegree() < degree) {
-				return polynomial.getExpression(); /* unexpected, but apparently the problem got simpler */
-			} else if (polynomial.getDegree() > degree) {
-				return expression; /* unexpected and the problem got more difficult */
+				return results;
+			} else if (polynomial.getDegree() != degree) {
+				return results;
 			} else if (polynomial.getCoefficient(degree-1) != null) {
-				return expression; /* failed to eliminate the n-1 term */
+				return results;
 			}
 		}
 		
 		if (degree != 3) {
-			return expression;
+			return results;
 		}
 		
 		Expression result = solveCubic(polynomial, variable);
 		if (result == null) {
-			return expression;
+			return results;
 		}
 		
 		if (term != null) {
-			result = Expression.add(result, term);
+			results.add(new Equation(Expression.add(result, term), new Expression("0")));
 		}
-		
-		return result;
+
+		return results;
 	}
 	
 	static Expression solveQuadratic(Polynomial polynomial, String variable) {
@@ -355,7 +355,7 @@ public class Solver {
 			} else {
 				for (Long i = new Long(1); i <= exponent; ++i) {
 					Expression denominator = new Expression(i.toString());
-					Expression pi2 = Expression.multiply(new Expression("2"), new Expression("Pi"));
+					Expression pi2 = Expression.multiply(new Expression("2"), new Expression("pi"));
 					Expression theta = Expression.divide(pi2, lhs.getRight());
 					Expression root = Expression.exponentiate(Expression.exponentiate(theta), denominator);
 					results.add(Expression.multiply(expression, root));
