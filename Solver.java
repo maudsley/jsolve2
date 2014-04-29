@@ -353,11 +353,11 @@ public class Solver {
 			if (exponent == null) {
 				results.add(expression);
 			} else {
-				for (long i = 1; i <= exponent; ++i) {
-					Long denominator = new Long(i);
+				for (Long i = new Long(1); i <= exponent; ++i) {
+					Expression denominator = new Expression(i.toString());
 					Expression pi2 = Expression.multiply(new Expression("2"), new Expression("Pi"));
-					Expression theta = Expression.divide(pi2, new Expression(denominator.toString()));
-					Expression root = Expression.exponentiate(Expression.exponentiate(theta), lhs.getRight());
+					Expression theta = Expression.divide(pi2, lhs.getRight());
+					Expression root = Expression.exponentiate(Expression.exponentiate(theta), denominator);
 					results.add(Expression.multiply(expression, root));
 				}
 			}
