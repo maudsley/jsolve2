@@ -6,10 +6,6 @@ import java.util.List;
 public class Simplify {
 	Simplify() {
 		String[] rules = {
-			"x+0 = x",
-			"x-0 = x",
-			"0-x = -x",
-			"x-x = 0",
 			"x*0 = 0",
 			"x*1 = x",
 			"0/x = 0",
@@ -31,60 +27,8 @@ public class Simplify {
 			identities.add(Parser.parse(rule));
 		}
 	}
-
-	boolean compareOperators(Expression a, Expression b) {
-		if (a == null || b == null) {
-			return a == null && b == null;
-		}
-		boolean result = true;
-		result &= compareOperators(a.getLeft(), b.getLeft());
-		result &= compareOperators(a.getLeft(), b.getLeft());
-		result &= compareOperators(a.getLeft(), b.getLeft());
-		if (!a.getType().equals(b.getType())) {
-			result = false;
-		}
-		return result;
-	}
-
-	boolean checkIdentity(Expression expression, Expression subExpression, Expression identity) {
-		Expression variable = new Expression(Substitution.allocateVariable(expression));
-		Expression a = Substitution.substitute(expression, subExpression, variable);
-		Expression b = Substitution.substitute(identity, new Expression("x"), variable);
-		return compareOperators(a, b.getLeft());
-	}
-
-	Expression applyIdentitiesSubstitute(Expression expression, Expression subExpression) {
-		if (expression == null || subExpression == null) {
-			return expression;
-		}
-
-		Expression result = expression.copy();
-		result.setLeft(applyIdentities(expression.getLeft()));
-		result.setRight(applyIdentities(expression.getRight()));
-		result.setChild(applyIdentities(expression.getChild()));
-
-		for (Expression identity : identities) {
-			Expression match = Substitution.substitute(identity, new Expression("x"), subExpression);
-			if (Canonicalizer.compare(expression, match.getLeft())) {
-				return match.getRight();
-			}
-		}
-
-		return result;
-	}
 	
 	Expression applyIdentities(Expression expression) {
-		if (expression != null) {
-			Expression result = expression.copy();
-			result = applyIdentitiesSubstitute(result, result.getLeft());
-			result = applyIdentitiesSubstitute(result, result.getRight());
-			result = applyIdentitiesSubstitute(result, result.getChild());
-			return result;
-		}
-		return null;
-	}
-	
-	Expression applyIdentitiesFast(Expression expression) {
 		for (Expression identity : identities) {
 			if (expression.isBinary()) {
 				Expression matchLeft = Substitution.substitute(identity, new Expression("x"), expression.getLeft());
@@ -112,6 +56,72 @@ public class Simplify {
 			return gcd(b, a % b);
 		}
 	}
+	
+	Expression foldFractionSum(Expression expression) {
+		/* a/b +/- c/d = (ad +/- cb) / (bd) */
+		Double a = expression.getLeft().getLeft().getSymbolAsFloat();
+		Double b = expression.getLeft().getRight().getSymbolAsFloat();
+		Double c = expression.getRight().getLeft().getSymbolAsFloat();
+		Double d = expression.getRight().getRight().getSymbolAsFloat();
+		if (a == null || b == null || c == null || d == null) {
+			return expression;
+		}
+		Expression result = Parser.parse("(_a*_d + _s*_c*_b) / (_b * _d)");
+		result = Substitution.substitute(result, new Expression("_a"), expression.getLeft().getLeft());
+		result = Substitution.substitute(result, new Expression("_b"), expression.getLeft().getRight());
+		result = Substitution.substitute(result, new Expression("_c"), expression.getRight().getLeft());
+		result = Substitution.substitute(result, new Expression("_d"), expression.getRight().getRight());
+		if (expression.getType().equals(Expression.Type.NODE_ADD)) {
+			result = Substitution.substitute(result, new Expression("_s"), new Expression("1"));
+		} else { /* subtract instead */
+			result = Substitution.substitute(result, new Expression("_s"), new Expression("-1"));
+		}
+		return result;
+	}
+
+	Expression foldAddition(Expression lhs, Expression rhs) {
+		if (lhs.isZero()) {
+			return rhs; /* 0 + x = x */
+		} else if (rhs.isZero()) {
+			return lhs; /* x + 0 = x */
+		}
+		Double left = lhs.getSymbolAsFloat();
+		Double right = rhs.getSymbolAsFloat();
+		if (left != null && right != null) {
+			return new Expression(left + right);
+		}
+		Expression result = Expression.add(foldConstants(lhs), foldConstants(rhs));
+		if (lhs.getType().equals(Expression.Type.NODE_DIVIDE) && rhs.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			Expression trial = foldFractionSum(result);
+			if (!trial.toString().equals(result.toString())) {
+				return trial;
+			}
+		}
+		return result;
+	}
+	
+	Expression foldSubtraction(Expression lhs, Expression rhs) {
+		if (rhs.isZero()) {
+			return lhs; /* x - 0 = x */
+		} else if (lhs.isZero()) {
+			return Expression.negate(rhs); /* 0 - x = -x */
+		} else if (Canonicalizer.compare(lhs, rhs)) {
+			return new Expression("0"); /* x - x = 0 */
+		}
+		Double left = lhs.getSymbolAsFloat();
+		Double right = rhs.getSymbolAsFloat();
+		if (left != null && right != null) {
+			return new Expression(left - right);
+		}
+		Expression result = Expression.subtract(foldConstants(lhs), foldConstants(rhs));
+		if (lhs.getType().equals(Expression.Type.NODE_DIVIDE) && rhs.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			Expression trial = foldFractionSum(result);
+			if (!trial.toString().equals(result.toString())) {
+				return trial;
+			}
+		}
+		return result;
+	}
 
 	Expression foldDivision(Expression lhs, Expression rhs) {
 		/* keep numbers rational */
@@ -130,57 +140,107 @@ public class Simplify {
 				return Expression.negate(Expression.divide(lhs, rhs));
 			}
 		}
-		return Expression.divide(lhs, rhs);
+		return Expression.divide(foldConstants(lhs), foldConstants(rhs));
+	}
+
+	Expression foldUnaryMinus(Expression arg) {
+		Double value = arg.getSymbolAsFloat();
+		if (value != null) {
+			return new Expression(-value);
+		}
+		return foldConstants(arg);
+	}
+
+	Expression foldSin(Expression arg) {
+		String[][] table = {
+			{"0", "0"},
+			{"pi/2", "1"},
+			{"pi", "0"},
+			{"pi*2/3", "3^(1/2)/2"},
+			{"pi*6/4", "-1"},
+			{"pi*2", "0"}
+		};
+		for (String[] pair : table) {
+			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
+				return Parser.parse(pair[1]);
+			}
+		}
+		Double value = arg.getSymbolAsFloat();
+		if (value != null) {
+			return new Expression(Math.sin(value));
+		}
+		Expression result = new Expression(Expression.Type.NODE_SINE);
+		result.setChild(foldConstants(arg));
+		return result;
+	}
+	
+	Expression foldCos(Expression arg) {
+		String[][] table = {
+			{"0", "1"},
+			{"pi/2", "0"},
+			{"pi", "-1"},
+			{"pi*2/3", "-1/2"},
+			{"pi*6/4", "0"},
+			{"pi*2", "1"}
+		};
+		for (String[] pair : table) {
+			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
+				return Parser.parse(pair[1]);
+			}
+		}
+		Double value = arg.getSymbolAsFloat();
+		if (value != null) {
+			return new Expression(Math.cos(value));
+		}
+		Expression result = new Expression(Expression.Type.NODE_COSINE);
+		result.setChild(foldConstants(arg));
+		return result;
 	}
 
 	Expression foldConstants(Expression expression) {
-		Double lhs = null;
-		Double rhs = null;
-		Double arg = null;
-		
-		//expression = applyIdentities(expression);
-		expression = applyIdentitiesFast(expression);
+		/* identity folding pending rewrite */
+		expression = applyIdentities(expression);
 
-		try {
-			if (expression.isBinary()) {
-				if (!expression.getLeft().isSymbol() || !expression.getRight().isSymbol()) {
-					return expression;
-				}
-				lhs = Double.parseDouble(expression.getLeft().getSymbol());
-				rhs = Double.parseDouble(expression.getRight().getSymbol());
-			} else if (expression.isUnary()) {
-				if (!expression.getChild().isSymbol()) {
-					return expression;
-				}
-				arg = Double.parseDouble(expression.getChild().getSymbol());
-			} else {
-				return expression;
-			}
-		} catch (NumberFormatException e) {
-			return expression;
-		}
-	
+		/* new handling - do not assume the branches are constants */
 		switch (expression.getType()) {
 		case NODE_ADD:
-			return new Expression(lhs + rhs);
+			return foldAddition(expression.getLeft(), expression.getRight());
 		case NODE_SUBTRACT:
-			return new Expression(lhs - rhs);
-		case NODE_MULTIPLY:
-			return new Expression(lhs * rhs);
+			return foldSubtraction(expression.getLeft(), expression.getRight());
 		case NODE_DIVIDE:
 			return foldDivision(expression.getLeft(), expression.getRight());
-		case NODE_EXPONENTIATE:
-			return new Expression(Math.pow(lhs,  rhs));
 		case NODE_PLUS:
-			return new Expression(arg);
+			return expression;
 		case NODE_MINUS:
-			return new Expression(-arg);
-		case NODE_LOGARITHM:
-			return new Expression(Math.log(rhs) / Math.log(lhs));
-		case NODE_FACTORIAL:
-		case NODE_FACTORIAL_INVERSE:
+			return foldUnaryMinus(expression.getChild());
+		case NODE_SINE:
+			return foldSin(expression.getChild());
+		case NODE_COSINE:
+			return foldCos(expression.getChild());
 		default:
 			break;
+		}
+
+		/* old handling - assume constants */
+		if (expression.isBinary()) {
+			Double lhs = expression.getLeft().getSymbolAsFloat();
+			Double rhs = expression.getRight().getSymbolAsFloat();
+			if (lhs != null && rhs != null) {
+				switch (expression.getType()) {
+				case NODE_ADD:
+					return new Expression(lhs + rhs);
+				case NODE_SUBTRACT:
+					return new Expression(lhs - rhs);
+				case NODE_MULTIPLY:
+					return new Expression(lhs * rhs);
+				case NODE_EXPONENTIATE:
+					return new Expression(Math.pow(lhs,  rhs));
+				case NODE_LOGARITHM:
+					return new Expression(Math.log(rhs) / Math.log(lhs));
+				default:
+					break;
+				}
+			}
 		}
 		
 		return expression;
@@ -270,7 +330,7 @@ public class Simplify {
 	}
 	
 	Expression foldExponential(Expression expression) {
-		expression = applyIdentitiesFast(expression);
+		expression = applyIdentities(expression);
 	
 		Expression exponent = fold(getExponent(expression));
 		if (exponent.isOne()) {
@@ -296,7 +356,7 @@ public class Simplify {
 		if (base.isSymbol()) {
 			if (base.getSymbol().equals("i")) {
 				Long power = exponent.getSymbolAsInteger();
-				if (power != null) {
+				if (power != null && power >= 0) {
 					String[] powers = {"1", "i", "-1", "-i"};
 					return new Expression(powers[power.intValue()%4]);
 				}
