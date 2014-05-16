@@ -12,26 +12,83 @@ public class Simplify {
 		}
 	}
 	
+	Expression signSubstitute(Expression where, Expression with) {
+		if (with.getType().equals(Expression.Type.NODE_ADD)) {
+			return Substitution.substitute(where, new Expression("_s"), new Expression("1"));
+		} else if (with.getType().equals(Expression.Type.NODE_SUBTRACT)) { /* subtract instead */
+			return Substitution.substitute(where, new Expression("_s"), new Expression("-1"));
+		} else {
+			return where;
+		}
+	}
+	
+	Expression foldLeftFractionSum(Expression expression) {
+		/* a/b +/- v = (a +/- v*b) / b */
+		if (!expression.getLeft().getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression;
+		}
+		
+		Double a = expression.getLeft().getLeft().getSymbolAsFloat();
+		Double b = expression.getLeft().getRight().getSymbolAsFloat();
+		Double v = expression.getRight().getSymbolAsFloat();
+		if (a == null || b == null || v == null) {
+			return expression;
+		}
+
+		Expression result = Parser.parse("(_a + _s*_v*_b) / _b");
+		result = Substitution.substitute(result, new Expression("_v"), expression.getRight());
+		result = Substitution.substitute(result, new Expression("_a"), expression.getLeft().getLeft());
+		result = Substitution.substitute(result, new Expression("_b"), expression.getLeft().getRight());
+		return signSubstitute(result, expression);
+	}
+	
+	Expression foldRightFractionSum(Expression expression) {
+		/* a/b +/- v = (a +/- v*b) / b */
+		if (!expression.getRight().getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression;
+		}
+		
+		Double u = expression.getLeft().getSymbolAsFloat();
+		Double c = expression.getRight().getLeft().getSymbolAsFloat();
+		Double d = expression.getRight().getRight().getSymbolAsFloat();
+		if (u == null || c == null || d == null) {
+			return expression;
+		}
+
+		Expression result = Parser.parse("(_u*_d + _s*_c) / _d");
+		result = Substitution.substitute(result, new Expression("_u"), expression.getLeft());
+		result = Substitution.substitute(result, new Expression("_c"), expression.getRight().getLeft());
+		result = Substitution.substitute(result, new Expression("_d"), expression.getRight().getRight());
+		return signSubstitute(result, expression);
+	}
+	
 	Expression foldFractionSum(Expression expression) {
-		/* a/b +/- c/d = (ad +/- cb) / (bd) */
+		expression = foldLeftFractionSum(foldRightFractionSum(expression));
+		
+		if (!expression.getLeft().getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression;
+		}
+		
+		if (!expression.getRight().getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression;
+		}
+		
 		Double a = expression.getLeft().getLeft().getSymbolAsFloat();
 		Double b = expression.getLeft().getRight().getSymbolAsFloat();
 		Double c = expression.getRight().getLeft().getSymbolAsFloat();
 		Double d = expression.getRight().getRight().getSymbolAsFloat();
-		if (a == null || b == null || c == null || d == null) {
-			return expression;
+	
+		/* a/b +/- c/d = (ad +/- cb) / (bd) */
+		if (a != null && b != null && c != null && d != null) {
+			Expression result = Parser.parse("(_a*_d + _s*_c*_b) / (_b * _d)");
+			result = Substitution.substitute(result, new Expression("_a"), expression.getLeft().getLeft());
+			result = Substitution.substitute(result, new Expression("_b"), expression.getLeft().getRight());
+			result = Substitution.substitute(result, new Expression("_c"), expression.getRight().getLeft());
+			result = Substitution.substitute(result, new Expression("_d"), expression.getRight().getRight());
+			return signSubstitute(result, expression);
 		}
-		Expression result = Parser.parse("(_a*_d + _s*_c*_b) / (_b * _d)");
-		result = Substitution.substitute(result, new Expression("_a"), expression.getLeft().getLeft());
-		result = Substitution.substitute(result, new Expression("_b"), expression.getLeft().getRight());
-		result = Substitution.substitute(result, new Expression("_c"), expression.getRight().getLeft());
-		result = Substitution.substitute(result, new Expression("_d"), expression.getRight().getRight());
-		if (expression.getType().equals(Expression.Type.NODE_ADD)) {
-			result = Substitution.substitute(result, new Expression("_s"), new Expression("1"));
-		} else { /* subtract instead */
-			result = Substitution.substitute(result, new Expression("_s"), new Expression("-1"));
-		}
-		return result;
+		
+		return expression;
 	}
 
 	Expression foldAddition(Expression lhs, Expression rhs) {
@@ -46,11 +103,9 @@ public class Simplify {
 			return new Expression(left + right);
 		}
 		Expression result = Expression.add(foldConstants(lhs), foldConstants(rhs));
-		if (lhs.getType().equals(Expression.Type.NODE_DIVIDE) && rhs.getType().equals(Expression.Type.NODE_DIVIDE)) {
-			Expression trial = foldFractionSum(result);
-			if (!trial.toString().equals(result.toString())) {
-				return trial;
-			}
+		Expression trial = foldFractionSum(result);
+		if (!trial.toString().equals(result.toString())) {
+			return trial;
 		}
 		return result;
 	}
@@ -69,11 +124,9 @@ public class Simplify {
 			return new Expression(left - right);
 		}
 		Expression result = Expression.subtract(foldConstants(lhs), foldConstants(rhs));
-		if (lhs.getType().equals(Expression.Type.NODE_DIVIDE) && rhs.getType().equals(Expression.Type.NODE_DIVIDE)) {
-			Expression trial = foldFractionSum(result);
-			if (!trial.toString().equals(result.toString())) {
-				return trial;
-			}
+		Expression trial = foldFractionSum(result);
+		if (!trial.toString().equals(result.toString())) {
+			return trial;
 		}
 		return result;
 	}
@@ -339,13 +392,13 @@ public class Simplify {
 			}
 		}
 
-		Expression numerator = getNumerator(base);
-		Expression denominator = getDenominator(base);
+		Expression numerator = fold(getNumerator(base));
+		Expression denominator = fold(getDenominator(base));
 		if (numerator.getSymbolAsInteger() != null || denominator.getSymbolAsInteger() != null) {
 			if (!denominator.isOne()) {
 				/* (1/a)^b -> 1/a^b */
-				numerator = foldConstants(Expression.exponentiate(numerator, exponent));
-				denominator = foldConstants(Expression.exponentiate(denominator, exponent));
+				numerator = Expression.exponentiate(numerator, exponent);
+				denominator = Expression.exponentiate(denominator, exponent);
 				return Expression.divide(numerator, denominator);
 			}
 		}
@@ -384,7 +437,7 @@ public class Simplify {
 		Expression lhs = Expression.exponentiate(variable, exponent);
 		Expression constant = Iterator.listProduct(constants);
 		Expression rhs = Expression.exponentiate(constant, exponent);
-		return Expression.multiply(foldConstants(lhs), foldConstants(rhs));
+		return Expression.multiply(lhs, rhs);
 	}
 	
 	Expression fold(Expression expression) {
@@ -402,7 +455,7 @@ public class Simplify {
 		List<Expression> terms = Iterator.getTerms(result);
 		if (terms.size() > 1) {
 			for (int i = 0; i < terms.size(); ++i) {
-				terms.set(i, foldConstants(fold(terms.get(i))));
+				terms.set(i, fold(terms.get(i)));
 			}
 			result = foldSum(terms);
 		}
@@ -411,28 +464,9 @@ public class Simplify {
 		List<Expression> factors = Iterator.getFactors(result, 0);
 		if (factors.size() > 1) {
 			for (int i = 0; i < factors.size(); ++i) {
-				factors.set(i, foldConstants(fold(factors.get(i))));
+				factors.set(i, fold(factors.get(i)));
 			}
 			result = foldProduct(factors);
-		}
-		
-		/* fold exponents */
-		result = Collector.normalizeExponents(result);
-		result = foldExponential(result);
-
-		/* addition, subtraction, and their inverses already handled */
-		switch (result.getType()) {
-		case NODE_ADD:
-		case NODE_SUBTRACT:
-		case NODE_MULTIPLY:
-			return result;
-		case NODE_DIVIDE:
-			/* a/b becomes a*1/b, so let us see into the reciprocal */
-			if (!result.getLeft().isOne()) {
-				return result;
-			}
-		default:
-			break;
 		}
 		
 		/* recurse into other types of operator */
