@@ -145,10 +145,10 @@ public class Simplify {
 
 	Expression foldUnaryMinus(Expression arg) {
 		Double value = arg.getSymbolAsFloat();
-		if (value != null) {
+		if (value != null) { /* move the sign onto the constant */
 			return new Expression(-value);
 		}
-		return foldConstants(arg);
+		return Expression.multiply(new Expression("-1"), foldConstants(arg));
 	}
 
 	Expression foldSin(Expression arg) {
