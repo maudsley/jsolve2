@@ -282,6 +282,13 @@ public class Expression {
 		return result;
 	}
 	
+	static Expression logarithm(Expression a, Expression b) {
+		Expression result = new Expression(Type.NODE_LOGARITHM);
+		result.setLeft(a);
+		result.setRight(b);
+		return result;
+	}
+	
 	static Expression negate(Expression x) {
 		return Expression.multiply(new Expression("-1"),  x);
 	}

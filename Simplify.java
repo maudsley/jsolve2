@@ -4,51 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Simplify {
-	Simplify() {
-		String[] rules = {
-			"x*0 = 0",
-			"x*1 = x",
-			"0/x = 0",
-			"x/1 = x",
-			"x/x = 1",
-			"x*1/x = 1",
-			"1/(1/x) = x",
-			"x^0 = 1",
-			"x^1 = x",
-			"0^x = 0",
-			"1^x = 1",
-			"0! = 1",
-			"x!*(x+1) = (x+1)!",
-			"x!/x = (x-1)!"
-		};
-	
-		identities = new ArrayList<Expression>();
-		for (String rule : rules) {
-			identities.add(Parser.parse(rule));
-		}
-	}
-	
-	Expression applyIdentities(Expression expression) {
-		for (Expression identity : identities) {
-			if (expression.isBinary()) {
-				Expression matchLeft = Substitution.substitute(identity, new Expression("x"), expression.getLeft());
-				if (Canonicalizer.compare(expression, matchLeft.getLeft())) {
-					return matchLeft.getRight();
-				}
-				Expression matchRight = Substitution.substitute(identity, new Expression("x"), expression.getRight());
-				if (Canonicalizer.compare(expression, matchRight.getLeft())) {
-					return matchRight.getRight();
-				}
-			} else if (expression.isUnary()) {
-				Expression matchCild = Substitution.substitute(identity, new Expression("x"), expression.getChild());
-				if (Canonicalizer.compare(expression, matchCild.getLeft())) {
-					return matchCild.getRight();
-				}
-			}
-		}
-		return expression;
-	}
-
 	static long gcd(long a, long b) {
 		if (b == 0) {
 			return a;
@@ -123,24 +78,78 @@ public class Simplify {
 		return result;
 	}
 
-	Expression foldDivision(Expression lhs, Expression rhs) {
-		/* keep numbers rational */
-		Long lhsValue = lhs.getSymbolAsInteger();
-		Long rhsValue = rhs.getSymbolAsInteger();
-		if (lhsValue != null && rhsValue != null) {
-			long product = lhsValue * rhsValue;
-			lhsValue = Math.abs(lhsValue);
-			rhsValue = Math.abs(rhsValue);
-			long commonFactor = gcd(lhsValue, rhsValue);
-			lhsValue /= commonFactor;
-			rhsValue /= commonFactor;
-			lhs = new Expression(lhsValue.toString());
-			rhs = new Expression(rhsValue.toString());
-			if (product < 0) {
-				return Expression.negate(Expression.divide(lhs, rhs));
+	Expression foldMultiplication(Expression lhs, Expression rhs) {
+		Double lhsValue = lhs.getSymbolAsFloat();
+		if (lhsValue != null) {
+			if (lhsValue == 0) {
+				return new Expression("0"); /* 0 * x = 0 */
+			} else if (lhsValue == 1) {
+				return rhs; /* 1 * x = x */
 			}
 		}
-		return Expression.divide(foldConstants(lhs), foldConstants(rhs));
+		
+		Double rhsValue = rhs.getSymbolAsFloat();
+		if (rhsValue != null) {
+			if (rhsValue == 0) {
+				return new Expression("0"); /* x * 0 = 0 */
+			} else if (rhsValue == 1) {
+				return lhs; /* x * 1 = x */
+			}
+		}
+		
+		if (lhs != null && rhs != null) {
+			return new Expression(lhsValue * rhsValue);
+		}
+		
+		return Expression.multiply(foldConstants(lhs), foldConstants(rhs));
+	}
+
+	Expression foldDivision(Expression lhs, Expression rhs) {
+		if (Canonicalizer.compare(lhs, rhs)) {
+			return new Expression("1"); /* x / x = 1 */
+		}
+
+		Long lhsValue = lhs.getSymbolAsInteger();
+		Long rhsValue = rhs.getSymbolAsInteger();
+		if (lhs == null || rhs == null) {
+			return Expression.divide(foldConstants(lhs), foldConstants(rhs));
+		}
+		
+		if (lhsValue == 0) {
+			return lhs; /* 0 / x = 0 */
+		} else if (rhsValue == 1) {
+			return lhs; /* x / 1 = x */
+		}
+		
+		long product = lhsValue * rhsValue;
+		lhsValue = Math.abs(lhsValue);
+		rhsValue = Math.abs(rhsValue);
+
+		/* keep numbers rational */
+		long commonFactor = gcd(lhsValue, rhsValue);
+		lhsValue /= commonFactor;
+		rhsValue /= commonFactor;
+
+		lhs = new Expression(lhsValue.toString());
+		rhs = new Expression(rhsValue.toString());
+
+		Expression result = Expression.divide(lhs, rhs);
+		if (product < 0) {
+			result = Expression.negate(result);
+		}
+
+		return result;
+	}
+	
+	Expression foldLogarithm(Expression lhs, Expression rhs) {
+		Double lhsValue = lhs.getSymbolAsFloat();
+		Double rhsValue = rhs.getSymbolAsFloat();
+		if (lhsValue != null && rhsValue != null) {
+			if (lhsValue >= 0) {
+				return new Expression(Math.log(rhsValue) / Math.log(lhsValue));
+			}
+		}
+		return Expression.logarithm(lhs, rhs);
 	}
 
 	Expression foldUnaryMinus(Expression arg) {
@@ -148,7 +157,7 @@ public class Simplify {
 		if (value != null) { /* move the sign onto the constant */
 			return new Expression(-value);
 		}
-		return Expression.multiply(new Expression("-1"), foldConstants(arg));
+		return Expression.negate(foldConstants(arg));
 	}
 
 	Expression foldSin(Expression arg) {
@@ -198,19 +207,21 @@ public class Simplify {
 	}
 
 	Expression foldConstants(Expression expression) {
-		/* identity folding pending rewrite */
-		expression = applyIdentities(expression);
-
-		/* new handling - do not assume the branches are constants */
 		switch (expression.getType()) {
 		case NODE_ADD:
 			return foldAddition(expression.getLeft(), expression.getRight());
 		case NODE_SUBTRACT:
 			return foldSubtraction(expression.getLeft(), expression.getRight());
+		case NODE_MULTIPLY:
+			return foldMultiplication(expression.getLeft(), expression.getRight());
 		case NODE_DIVIDE:
 			return foldDivision(expression.getLeft(), expression.getRight());
+		case NODE_EXPONENTIATE:
+			return foldExponential(Collector.normalizeExponents(expression));
+		case NODE_LOGARITHM:
+			return foldLogarithm(expression.getLeft(), expression.getRight());
 		case NODE_PLUS:
-			return expression;
+			return expression.getChild();
 		case NODE_MINUS:
 			return foldUnaryMinus(expression.getChild());
 		case NODE_SINE:
@@ -218,32 +229,8 @@ public class Simplify {
 		case NODE_COSINE:
 			return foldCos(expression.getChild());
 		default:
-			break;
+			return expression;
 		}
-
-		/* old handling - assume constants */
-		if (expression.isBinary()) {
-			Double lhs = expression.getLeft().getSymbolAsFloat();
-			Double rhs = expression.getRight().getSymbolAsFloat();
-			if (lhs != null && rhs != null) {
-				switch (expression.getType()) {
-				case NODE_ADD:
-					return new Expression(lhs + rhs);
-				case NODE_SUBTRACT:
-					return new Expression(lhs - rhs);
-				case NODE_MULTIPLY:
-					return new Expression(lhs * rhs);
-				case NODE_EXPONENTIATE:
-					return new Expression(Math.pow(lhs,  rhs));
-				case NODE_LOGARITHM:
-					return new Expression(Math.log(rhs) / Math.log(lhs));
-				default:
-					break;
-				}
-			}
-		}
-		
-		return expression;
 	}
 	
 	Expression foldSum(List<Expression> terms) {
@@ -330,16 +317,18 @@ public class Simplify {
 	}
 	
 	Expression foldExponential(Expression expression) {
-		expression = applyIdentities(expression);
-	
 		Expression exponent = fold(getExponent(expression));
-		if (exponent.isOne()) {
-			return expression;
+		if (exponent.isZero()) {
+			return new Expression("1"); /* x^0 = 1 */
+		} else if (exponent.isOne()) {
+			return expression; /* x^1 = x */
 		}
 		
 		Expression base = fold(getBase(expression));
-		if (base.isOne()) {
-			return base;
+		if (base.isZero()) {
+			return new Expression("0"); /* 0^x = 0 */
+		} else if (base.isOne()) {
+			return base; /* 1^x = 1 */
 		}
 		
 		Expression numerator = getNumerator(base);

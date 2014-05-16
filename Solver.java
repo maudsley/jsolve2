@@ -179,12 +179,7 @@ public class Solver {
 			return results;
 		}
 		
-		lhs = Collector.collect(lhs, variable);
-		if (isSolvable(lhs, variable)) {
-			results.add(new Equation(lhs, rhs));
-			return results;
-		}
-		
+		lhs = Collector.collect(lhs, variable);		
 		lhs = Simplify.simplify(lhs);
 		if (isSolvable(lhs, variable)) {
 			results.add(new Equation(lhs, rhs));

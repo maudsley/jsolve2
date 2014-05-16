@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x=x";
+				expression = "x^x=1";
 			}
 			
 			Parser parser = null;
