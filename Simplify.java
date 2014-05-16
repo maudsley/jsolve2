@@ -97,7 +97,7 @@ public class Simplify {
 			}
 		}
 		
-		if (lhs != null && rhs != null) {
+		if (lhsValue != null && rhsValue != null) {
 			return new Expression(lhsValue * rhsValue);
 		}
 		
@@ -111,7 +111,7 @@ public class Simplify {
 
 		Long lhsValue = lhs.getSymbolAsInteger();
 		Long rhsValue = rhs.getSymbolAsInteger();
-		if (lhs == null || rhs == null) {
+		if (lhsValue == null || rhsValue == null) {
 			return Expression.divide(foldConstants(lhs), foldConstants(rhs));
 		}
 		
@@ -330,7 +330,15 @@ public class Simplify {
 		} else if (base.isOne()) {
 			return base; /* 1^x = 1 */
 		}
-		
+
+		Double expValue = exponent.getSymbolAsFloat();
+		Double baseValue = base.getSymbolAsFloat();
+		if (expValue != null && baseValue != null) {
+			if (expValue > 0) {
+				return new Expression(Math.pow(baseValue, expValue));
+			}
+		}
+
 		Expression numerator = getNumerator(base);
 		Expression denominator = getDenominator(base);
 		if (numerator.getSymbolAsInteger() != null || denominator.getSymbolAsInteger() != null) {

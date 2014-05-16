@@ -121,6 +121,10 @@ public class Polynomial {
 		return Iterator.listSum(result);
 	}
 	
+	public String toString() {
+		return getExpression().toString();
+	}
+	
 	boolean isValid() {
 		for (Coefficient coefficient : coefficients_) {
 			if (coefficient.getExpression().contains(variableName_)) {
