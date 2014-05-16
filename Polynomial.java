@@ -74,6 +74,9 @@ public class Polynomial {
 				commonFactor = Simplify.gcd(commonFactor, coefficient.getDegree());
 			}
 		}
+		if (commonFactor == 0) {
+			return;
+		}
 		for (int i = 0; i < coefficients_.size(); ++i) {
 			Coefficient coefficient = coefficients_.get(i);
 			coefficient.setDegree(coefficient.getDegree() / commonFactor);
