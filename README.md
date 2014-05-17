@@ -24,7 +24,7 @@ Variable names are strings of any length and multiplication is not implied, so a
 
 Variables with an underscore prefix are used internally for substitutions and it will probably break things if you use them.
 
-If the input is an expression, f(x), without an equals sign, the program will try to simplify it and print the result.
+If the input is an expression, without an equals sign, the program will try to simplify it and print the result.
 
 The following operators are supported:
 
@@ -35,7 +35,7 @@ The following operators are supported:
  * ^ (exponentation)
  * ! (factorial)
 
-Functions, e.g trig functions, are not supported.
+Functions, e.g trig functions, are not supported. To input sqrt(x) use x^(1/2).
 
 Examples
 --------
