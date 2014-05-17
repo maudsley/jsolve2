@@ -256,14 +256,16 @@ public class Solver {
 			return results;
 		}
 		
-		Expression result = solveCubic(polynomial, variable);
-		if (result == null) {
+		Expression factored = solveCubic(polynomial, variable);
+		if (factored == null) {
 			return results;
 		}
 		
-		if (term != null) {
-			results.add(new Equation(Expression.add(result, term), new Expression("0")));
+		if (term != null) { /* reverse the substitution performed above */
+			factored = Expression.add(factored, term);
 		}
+		
+		results.add(new Equation(factored, new Expression("0")));
 
 		return results;
 	}

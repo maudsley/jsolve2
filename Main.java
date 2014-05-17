@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "1/2 + 1";
+				expression = "x^3 + x = 1";
 			}
 			
 			Parser parser = null;
@@ -77,8 +77,7 @@ public class Main {
 			
 			for (int i = 0; i < solutions.size(); ++i) {
 				if (i == 2) {
-					Long count = new Long(solutions.size());
-					System.out.println(input.toString() + " -> (2 of " + count.toString() + " solutions)");
+					System.out.println(input.toString() + " -> (" + i + " of " + solutions.size() + " solutions)");
 					break;
 				}
 				Expression solution = solutions.get(i);
