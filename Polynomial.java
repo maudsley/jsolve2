@@ -113,7 +113,9 @@ public class Polynomial {
 				term = Expression.exponentiate(term, exponent);
 			}
 			Expression expression = coefficient.getExpression();
-			if (!expression.isOne()) {
+			if (exponent.isZero()) {
+				term = expression;
+			} else if (!expression.isOne()) {
 				term = Expression.multiply(expression, term);
 			}
 			result.add(term);
@@ -159,6 +161,7 @@ public class Polynomial {
 			if (coefficient.getDegree() == degree) {
 				coefficient.setExpression(expression);
 				coefficients_.set(i, coefficient);
+				return;
 			}
 		}
 		/* that term does not exist. create it */

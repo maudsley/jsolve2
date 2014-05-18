@@ -396,10 +396,7 @@ public class Simplify {
 	
 	Expression foldSum(List<Expression> terms) {
 		for (int i = 0; i < terms.size(); ++i) {
-			for (int j = 0; j < terms.size(); ++j) {
-				if (i == j) {
-					continue;
-				}
+			for (int j = i+1; j < terms.size(); ++j) {
 				List<Expression> twoTerms = new ArrayList<Expression>();
 				twoTerms.add(terms.get(i));
 				twoTerms.add(terms.get(j));
@@ -420,10 +417,7 @@ public class Simplify {
 	
 	Expression foldProduct(List<Expression> factors) {
 		for (int i = 0; i < factors.size(); ++i) {
-			for (int j = 0; j < factors.size(); ++j) {
-				if (i == j) {
-					continue;
-				}
+			for (int j = i+1; j < factors.size(); ++j) {
 				List<Expression> twoFactors = new ArrayList<Expression>();
 				twoFactors.add(factors.get(i));
 				twoFactors.add(factors.get(j));

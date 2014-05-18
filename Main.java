@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-
 import jsolve.Parser.Error;
 
 public class Main {
@@ -27,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(a*x^2 + b*x)^2 + (a*x^2 + b*x)^3 = 0";
+				expression = "(x^2 + x)^2 + (x^2 + x) = 0";
 			}
 			
 			Parser parser = null;
