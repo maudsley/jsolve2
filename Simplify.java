@@ -333,7 +333,12 @@ public class Simplify {
 		}
 		
 		if (constants.size() == 0 || variables.size() == 0) {
-			return Expression.exponentiate(base, exponent);
+			if (getNumerator(base).isOne()) { /* (1/x)^n -> 1/x^n */
+				Expression denom = Expression.exponentiate(getDenominator(base), exponent);
+				return Expression.divide(new Expression("1"), denom);
+			} else {
+				return Expression.exponentiate(base, exponent);
+			}
 		}
 		
 		/* factor (a*b)^c into a^c*b^c, if b is a constant */
