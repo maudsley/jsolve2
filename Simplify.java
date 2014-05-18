@@ -229,6 +229,31 @@ public class Simplify {
 		}
 	}
 	
+	Expression exactExponentation(Double base, Double expNumerator, Double expDenominator) {
+		Expression exponent = Expression.divide(new Expression(expNumerator), new Expression(expDenominator));
+		Expression exponentation = Expression.exponentiate(new Expression(base), exponent);
+		if (expDenominator == 0) {
+			return exponentation; /* cannot simplify due to zero divide */
+		}
+		if (expNumerator == 0) {
+			return new Expression("1"); /* x^0 = 1 */
+		}
+		Double result = Math.floor(Math.pow(base, expNumerator/expDenominator));
+		if (Math.pow(result, expDenominator/expNumerator) == base) {
+			return new Expression(result);
+		}
+		result = Math.floor(Math.pow(base, 1/expDenominator));
+		if (Math.pow(result, expDenominator) == base) { /* x^(a/b) -> [x^(1/b)]^a -> y^a */
+			return Expression.exponentiate(new Expression(result), new Expression(expNumerator));
+		}
+		result = Math.floor(Math.pow(base, expNumerator));
+		if (Math.pow(result, 1.0/expNumerator) == base) { /* x^(a/b) -> (x^a)^(1/b) -> y^(1/b) */
+			Expression denominator = Expression.divide(new Expression("1"), new Expression(expDenominator));
+			return Expression.exponentiate(new Expression(result), denominator);
+		}		
+		return exponentation; /* unable to simplify because an exact result could not be obtained */
+	}
+	
 	Expression foldExponential(Expression expression) {
 		expression = Collector.normalizeExponents(expression);
 	
@@ -245,34 +270,24 @@ public class Simplify {
 		} else if (base.isOne()) {
 			return base; /* 1^x = 1 */
 		}
-
-		/* fold a^b for numeric constants */
-		Double expValue = exponent.getSymbolAsFloat();
-		Double baseValue = base.getSymbolAsFloat();
-		if (expValue != null && baseValue != null) {
-			if (expValue > 0) {
-				return new Expression(Math.pow(baseValue, expValue));
-			}
-		}
 		
-		/* fold a^(1/b) for numeric constants */
-		Long expNumerator = getNumerator(exponent).getSymbolAsInteger();
-		Long expDenominator = getDenominator(exponent).getSymbolAsInteger();
-		if (baseValue != null && expNumerator == 1 && expDenominator != null) {
-			Double result = Math.floor(Math.pow(baseValue, 1.0/expDenominator));
-			if (Math.pow(result, expDenominator) == baseValue) {
-				return new Expression(result); /* an exact result was obtained */
+		Double baseValue = base.getSymbolAsFloat();
+		if (baseValue != null) { /* attempt to fold numeric constants */
+			if (baseValue < 0 && baseValue != -1) {
+				Expression lhs = Expression.exponentiate(new Expression("-1"), exponent);
+				Expression rhs = Expression.exponentiate(new Expression(Math.abs(baseValue)), exponent);
+				return Expression.multiply(foldExponential(lhs), foldExponential(rhs));
 			}
-		}
-
-		Expression numerator = fold(getNumerator(base));
-		Expression denominator = fold(getDenominator(base));
-		if (numerator.getSymbolAsInteger() != null || denominator.getSymbolAsInteger() != null) {
-			if (!denominator.isOne()) {
-				/* (1/a)^b -> 1/a^b */
-				numerator = Expression.exponentiate(numerator, exponent);
-				denominator = Expression.exponentiate(denominator, exponent);
-				return Expression.divide(numerator, denominator);
+			Double expNumValue = getNumerator(exponent).getSymbolAsFloat();
+			Double expDenValue = getDenominator(exponent).getSymbolAsFloat();
+			if (expNumValue != null && expDenValue != null) {
+				if (baseValue > 0) {
+					return exactExponentation(baseValue, expNumValue, expDenValue);
+				} else if (baseValue == -1) {
+					Expression pi = new Expression("pi"); /* ln(-1) = pi */
+					Expression complexExponent = Expression.multiply(pi, exponent);
+					return Expression.exponentiate(complexExponent);
+				}
 			}
 		}
 		
@@ -282,6 +297,21 @@ public class Simplify {
 				if (power != null && power >= 0) {
 					String[] powers = {"1", "i", "-1", "-i"};
 					return new Expression(powers[power.intValue()%4]);
+				}
+			} else if (base.getSymbol().equals("e")) {
+				List<Expression> exponentFactors = Iterator.getFactors(exponent, 5);
+				List<Expression> realFactors = new ArrayList<Expression>();
+				boolean imaginary = false;
+				for (Expression factor : exponentFactors) {
+					if (factor.toString().equals("i")) {
+						imaginary = true;
+					} else {
+						realFactors.add(factor);
+					}
+				}
+				if (imaginary) {
+					Expression realExponent = Iterator.listProduct(realFactors);
+					return Expression.exponentiate(realExponent);
 				}
 			}
 		}
@@ -335,6 +365,7 @@ public class Simplify {
 	Expression foldSin(Expression arg) {
 		String[][] table = {
 			{"0", "0"},
+			{"pi/3", "3^(1/2)/2"},
 			{"pi/2", "1"},
 			{"pi", "0"},
 			{"pi*2/3", "3^(1/2)/2"},
@@ -358,6 +389,7 @@ public class Simplify {
 	Expression foldCos(Expression arg) {
 		String[][] table = {
 			{"0", "1"},
+			{"pi/3", "1/2"},
 			{"pi/2", "0"},
 			{"pi", "-1"},
 			{"pi*2/3", "-1/2"},
