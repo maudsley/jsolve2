@@ -397,7 +397,7 @@ public class Simplify {
 			{"pi*2/3", "-1/2"},
 			{"pi*3/2", "0"},
 			{"pi*2", "1"},
-			{"pi*3", "1"}
+			{"pi*3", "-1"}
 		};
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
