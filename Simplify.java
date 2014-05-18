@@ -164,13 +164,16 @@ public class Simplify {
 
 		Long lhsValue = lhs.getSymbolAsInteger();
 		Long rhsValue = rhs.getSymbolAsInteger();
+		
+		if (lhsValue != null && lhsValue == 0) {
+			return lhs; /* 0 / x = 0 */
+		}
+		
 		if (lhsValue == null || rhsValue == null) {
 			return Expression.divide(foldConstants(lhs), foldConstants(rhs));
 		}
 		
-		if (lhsValue == 0) {
-			return lhs; /* 0 / x = 0 */
-		} else if (rhsValue == 1) {
+		if (rhsValue == 1) {
 			return lhs; /* x / 1 = x */
 		}
 		
@@ -254,9 +257,7 @@ public class Simplify {
 		return exponentation; /* unable to simplify because an exact result could not be obtained */
 	}
 	
-	Expression foldExponential(Expression expression) {
-		expression = Collector.normalizeExponents(expression);
-	
+	Expression foldExponential(Expression expression) {	
 		Expression exponent = fold(getExponent(expression));
 		if (exponent.isZero()) {
 			return new Expression("1"); /* x^0 = 1 */
@@ -370,7 +371,8 @@ public class Simplify {
 			{"pi", "0"},
 			{"pi*2/3", "3^(1/2)/2"},
 			{"pi*3/2", "-1"},
-			{"pi*2", "0"}
+			{"pi*2", "0"},
+			{"pi*3", "0"},
 		};
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
@@ -394,7 +396,8 @@ public class Simplify {
 			{"pi", "-1"},
 			{"pi*2/3", "-1/2"},
 			{"pi*3/2", "0"},
-			{"pi*2", "1"}
+			{"pi*2", "1"},
+			{"pi*3", "1"}
 		};
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
@@ -488,7 +491,7 @@ public class Simplify {
 			return expression;
 		}
 	
-		Expression result = expression.copy();
+		Expression result = Collector.normalizeExponents(expression);
 
 		/* fold sums */
 		List<Expression> terms = Iterator.getTerms(result);

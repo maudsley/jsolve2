@@ -42,4 +42,3 @@ Examples
 
 * a*x + b = 0
 * a*x^2 + b*x + c = 0
-* e^(2*x) / (a + e^x) = y

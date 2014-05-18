@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "e^i";
+				expression = "z^(2*x) / (a + z^x) = y";
 			}
 			
 			Parser parser = null;
