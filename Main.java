@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(x^2 + x)^2 + (x^2 + x) = 0";
+				expression = "4^(1/2)";
 			}
 			
 			Parser parser = null;

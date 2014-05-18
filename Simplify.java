@@ -246,11 +246,22 @@ public class Simplify {
 			return base; /* 1^x = 1 */
 		}
 
+		/* fold a^b for numeric constants */
 		Double expValue = exponent.getSymbolAsFloat();
 		Double baseValue = base.getSymbolAsFloat();
 		if (expValue != null && baseValue != null) {
 			if (expValue > 0) {
 				return new Expression(Math.pow(baseValue, expValue));
+			}
+		}
+		
+		/* fold a^(1/b) for numeric constants */
+		Long expNumerator = getNumerator(exponent).getSymbolAsInteger();
+		Long expDenominator = getDenominator(exponent).getSymbolAsInteger();
+		if (baseValue != null && expNumerator == 1 && expDenominator != null) {
+			Double result = Math.floor(Math.pow(baseValue, 1.0/expDenominator));
+			if (Math.pow(result, expDenominator) == baseValue) {
+				return new Expression(result); /* an exact result was obtained */
 			}
 		}
 
