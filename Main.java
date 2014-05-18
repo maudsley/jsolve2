@@ -27,7 +27,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^3 + x = 1";
+				expression = "(a*x^2 + b*x)^2 + (a*x^2 + b*x)^3 = 0";
 			}
 			
 			Parser parser = null;

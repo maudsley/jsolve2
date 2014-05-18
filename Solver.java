@@ -130,7 +130,7 @@ public class Solver {
 		if (subexpression != null) {
 			String newVariable = Substitution.allocateVariable(lhs);
 			Expression substitution = Substitution.substitute(lhs, subexpression, new Expression(newVariable));
-			substitution = Expression.subtract(substitution, rhs);
+			substitution = Expression.equals(substitution, rhs);
 			List<Expression> solutions = Solver.solve(substitution, newVariable);
 			for (Expression solution : solutions ) {
 				results.add(new Equation(subexpression, solution));
