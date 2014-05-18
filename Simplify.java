@@ -517,8 +517,6 @@ public class Simplify {
 		}
 		
 		/* recurse into other types of operator */
-		result.setLeft(fold(result.getLeft()));
-		result.setRight(fold(result.getRight()));
 		result.setChild(fold(result.getChild()));
 		return foldConstants(result);
 	}
