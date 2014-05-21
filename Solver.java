@@ -215,7 +215,7 @@ public class Solver {
 		List<Equation> results = new ArrayList<Equation>();
 	
 		Long degree = polynomial.getDegree();
-		if (degree > 3) {
+		if (degree < 2 || degree > 3) {
 			return results;
 		}
 		
