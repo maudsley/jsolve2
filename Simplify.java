@@ -259,13 +259,14 @@ public class Simplify {
 	
 	Expression foldExponential(Expression expression) {	
 		Expression exponent = fold(getExponent(expression));
+		Expression base = fold(getBase(expression));
+		
 		if (exponent.isZero()) {
 			return new Expression("1"); /* x^0 = 1 */
 		} else if (exponent.isOne()) {
-			return expression; /* x^1 = x */
+			return base; /* x^1 = x */
 		}
-		
-		Expression base = fold(getBase(expression));
+
 		if (base.isZero()) {
 			return new Expression("0"); /* 0^x = 0 */
 		} else if (base.isOne()) {
