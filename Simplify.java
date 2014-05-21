@@ -420,6 +420,11 @@ public class Simplify {
 				return Parser.parse(pair[1]);
 			}
 		}
+		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
+		Double factorValue = factor.getSymbolAsFloat();
+		if (Math.floor(factorValue) == factorValue) {
+			return new Expression("0");
+		}
 		Double value = arg.getSymbolAsFloat();
 		if (value != null) {
 			return new Expression(Math.sin(value));
@@ -443,6 +448,15 @@ public class Simplify {
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
 				return Parser.parse(pair[1]);
+			}
+		}
+		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
+		Double factorValue = factor.getSymbolAsFloat();
+		if (Math.floor(factorValue) == factorValue) {
+			if (factor.getSymbolAsInteger() % 2 == 0) {
+				return new Expression("1");
+			} else {
+				return new Expression("-1");
 			}
 		}
 		Double value = arg.getSymbolAsFloat();
