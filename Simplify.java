@@ -130,8 +130,36 @@ public class Simplify {
 		}
 		return result;
 	}
+	
+	Expression foldExponents(Expression expression) {
+		Double expLhs = getExponent(expression.getLeft()).getSymbolAsFloat();
+		Double expRhs = getExponent(expression.getRight()).getSymbolAsFloat();
+		if (expLhs == null || expRhs == null) {
+			return expression;
+		}
+		Expression baseLhs = getBase(expression.getLeft());
+		Expression baseRhs = getBase(expression.getRight());
+		if (Canonicalizer.compare(baseLhs, baseRhs)) {
+			switch (expression.getType()) {
+			case NODE_MULTIPLY: /* x^a * x^b = x^(a+b) */
+				return Expression.exponentiate(baseLhs, new Expression(expLhs + expRhs));
+			case NODE_DIVIDE: /* x^a / x^b = x^(a-b) */
+				return Expression.exponentiate(baseLhs, new Expression(expLhs - expRhs));
+			default:
+				break;
+			}
+		}
+		return expression;
+	}
 
-	Expression foldMultiplication(Expression lhs, Expression rhs) {
+	Expression foldMultiplication(Expression expression) {
+		expression = foldExponents(expression);
+		if (!expression.getType().equals(Expression.Type.NODE_MULTIPLY)) {
+			return expression;
+		}
+		
+		Expression lhs = expression.getLeft();
+		Expression rhs = expression.getRight();
 		Double lhsValue = lhs.getSymbolAsFloat();
 		if (lhsValue != null) {
 			if (lhsValue == 0) {
@@ -157,7 +185,14 @@ public class Simplify {
 		return Expression.multiply(foldConstants(lhs), foldConstants(rhs));
 	}
 
-	Expression foldDivision(Expression lhs, Expression rhs) {
+	Expression foldDivision(Expression expression) {
+		expression = foldExponents(expression);
+		if (!expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression;
+		}
+		
+		Expression lhs = expression.getLeft();
+		Expression rhs = expression.getRight();
 		if (Canonicalizer.compare(lhs, rhs)) {
 			return new Expression("1"); /* x / x = 1 */
 		}
@@ -426,9 +461,9 @@ public class Simplify {
 		case NODE_SUBTRACT:
 			return foldSubtraction(expression.getLeft(), expression.getRight());
 		case NODE_MULTIPLY:
-			return foldMultiplication(expression.getLeft(), expression.getRight());
+			return foldMultiplication(expression);
 		case NODE_DIVIDE:
-			return foldDivision(expression.getLeft(), expression.getRight());
+			return foldDivision(expression);
 		case NODE_EXPONENTIATE:
 			return foldExponential(expression);
 		case NODE_LOGARITHM:
