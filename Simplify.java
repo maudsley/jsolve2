@@ -132,26 +132,18 @@ public class Simplify {
 	}
 	
 	Expression foldExponents(Expression expression) {
-		Double expLhs = getExponent(expression.getLeft()).getSymbolAsFloat();
-		Double expRhs = getExponent(expression.getRight()).getSymbolAsFloat();
-		if (expLhs == null || expRhs == null) {
-			return expression;
-		}
 		Expression baseLhs = getBase(expression.getLeft());
 		Expression baseRhs = getBase(expression.getRight());
 		if (Canonicalizer.compare(baseLhs, baseRhs)) {
+			Expression expLhs = getExponent(expression.getLeft());
+			Expression expRhs = getExponent(expression.getRight());
 			switch (expression.getType()) {
 			case NODE_MULTIPLY: /* x^a * x^b = x^(a+b) */
-				Double sum = expLhs + expRhs;
-				if (sum >= 0) {
-					return Expression.exponentiate(baseLhs, new Expression(sum));
-				}
-				break;
+				Expression expSum = Expression.add(expLhs, expRhs);
+				return Expression.exponentiate(baseLhs, expSum);
 			case NODE_DIVIDE: /* x^a / x^b = x^(a-b) */
-				Double diff = expLhs - expRhs;
-				if (diff >= 0) {
-					return Expression.exponentiate(baseLhs, new Expression(diff));
-				}
+				Expression expDiff = Expression.subtract(expLhs, expRhs);
+				return Expression.exponentiate(baseLhs, expDiff);
 			default:
 				break;
 			}
