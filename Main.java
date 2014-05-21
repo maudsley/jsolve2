@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^4 / x";
+				expression = "x^2+x^6-987=1000";
 			}
 			
 			Parser parser = null;

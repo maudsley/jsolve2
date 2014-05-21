@@ -186,17 +186,9 @@ public class Solver {
 			return results;
 		}
 		
-		if (lhs.getType().equals(Expression.Type.NODE_DIVIDE)) {
-			/* f(x) / g(x) = h(x) -> f(x) = h(x) * g(x) */
-			rhs = Expression.multiply(rhs, lhs.getRight());
-			lhs = Expression.subtract(lhs.getLeft(), rhs);
-			rhs = new Expression("0");
-			results.add(new Equation(lhs, rhs));
-			return results;
-		}
-		
-		if (isSolvable(lhs, variable)) {
-			results.add(new Equation(lhs, rhs));
+		Expression rationalSolve = solveRational(lhs, rhs, variable);
+		if (rationalSolve != null) {
+			results.add(new Equation(rationalSolve, new Expression("0")));
 			return results;
 		}
 		
@@ -298,33 +290,68 @@ public class Solver {
 		Expression linear = polynomial.getCoefficient(1);
 		Expression sub = Parser.parse("_x - _a/3*_x^(-1)");
 		sub = Substitution.substitute(sub, new Expression("_a"), linear);
-		sub = Substitution.substitute(sub, new Expression("_x"), polynomial.getVariable());
-		sub = Substitution.substitute(polynomial.getExpression(), new Expression(variable), sub);
+		sub = Substitution.substitute(polynomial.getExpression(), polynomial.getVariable(), sub);
 		
 		/* clearing the denominator turns this into a quadratic in x^3 */
-		Expression x3 = Expression.exponentiate(polynomial.getVariable(), new Expression("3"));
+		Expression x3 = Parser.parse("_x^3");
 		sub = Expression.multiply(sub, x3);
 		sub = Simplify.simplify(sub);
-		sub = Expander.expand(sub, variable);
-		sub = Collector.collect(sub, variable);
+		sub = Expander.expand(sub, "_x");
+		sub = Collector.collect(sub, "_x");
+		sub = Substitution.substitute(sub, new Expression("_x"), polynomial.getVariable());
 		sub = Simplify.simplify(sub);
 		polynomial = new Polynomial(sub, variable);
 		
-		if (!polynomial.isValid()) {
-			return null;
-		}
-		
-		if (polynomial.getDegree() == 1) {
-			return polynomial.getExpression();
-		}
-		
-		if (polynomial.getDegree() != 2) {
+		if (!polynomial.isValid() || polynomial.getDegree() != 2) {
 			return null;
 		}
 		
 		Expression result = solveQuadratic(polynomial, variable);
 		
 		return result;
+	}
+	
+	static Expression denominatorExpression(Expression expression, String variable) {
+		if (expression == null) {
+			return null;
+		}
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			if (expression.getRight().contains(variable)) {
+				return expression.getRight();
+			}
+		}
+		Expression lhs = denominatorExpression(expression.getLeft(), variable);
+		if (lhs != null) {
+			return lhs;
+		}
+		Expression rhs = denominatorExpression(expression.getRight(), variable);
+		if (rhs != null) {
+			return rhs;
+		}
+		return null;
+	}
+	
+	static Expression solveRational(Expression lhs, Expression rhs, String variable) {
+		/* x + a/x -> x^2 + a */
+		Expression denominator = denominatorExpression(lhs, variable);
+		if (denominator == null) {
+			return null;
+		}
+		int iterationCount = 0;
+		Expression newLhs = lhs;
+		Expression newRhs = rhs;
+		while (denominator != null) {
+			if (++iterationCount == 4) {
+				return null;
+			}
+			newRhs = Expression.multiply(newRhs, denominator);
+			newLhs = Expression.multiply(newLhs, denominator);
+			newLhs = Simplify.simplify(newLhs);
+			newLhs = Expander.expand(newLhs, variable);
+			newLhs = Simplify.simplify(newLhs);
+			denominator = denominatorExpression(newLhs, variable);
+		}
+		return Expression.subtract(newLhs, newRhs);
 	}
 
 	static List<Expression> inverseLeft(Expression lhs, Expression rhs, String variable) {

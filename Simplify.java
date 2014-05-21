@@ -142,9 +142,16 @@ public class Simplify {
 		if (Canonicalizer.compare(baseLhs, baseRhs)) {
 			switch (expression.getType()) {
 			case NODE_MULTIPLY: /* x^a * x^b = x^(a+b) */
-				return Expression.exponentiate(baseLhs, new Expression(expLhs + expRhs));
+				Double sum = expLhs + expRhs;
+				if (sum >= 0) {
+					return Expression.exponentiate(baseLhs, new Expression(sum));
+				}
+				break;
 			case NODE_DIVIDE: /* x^a / x^b = x^(a-b) */
-				return Expression.exponentiate(baseLhs, new Expression(expLhs - expRhs));
+				Double diff = expLhs - expRhs;
+				if (diff >= 0) {
+					return Expression.exponentiate(baseLhs, new Expression(diff));
+				}
 			default:
 				break;
 			}
@@ -393,7 +400,7 @@ public class Simplify {
 				return new Expression(Math.log(rhsValue) / Math.log(lhsValue));
 			}
 		}
-		return Expression.logarithm(lhs, rhs);
+		return Expression.logarithm(fold(lhs), fold(rhs));
 	}
 
 	Expression foldUnaryMinus(Expression arg) {
