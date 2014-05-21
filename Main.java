@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "x^2000+3=0";
+				expression = "a/(x+b) + c*x = d";
 			}
 			
 			Parser parser = null;

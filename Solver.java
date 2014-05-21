@@ -345,9 +345,12 @@ public class Solver {
 				return null;
 			}
 			newRhs = Expression.multiply(newRhs, denominator);
-			newLhs = Expression.multiply(newLhs, denominator);
-			newLhs = Simplify.simplify(newLhs);
-			newLhs = Expander.expand(newLhs, variable);
+			List<Expression> terms = Iterator.getTerms(lhs);
+			List<Expression> newTerms = new ArrayList<Expression>();
+			for (Expression term : terms) {
+				newTerms.add(Expression.multiply(term, denominator));
+			}
+			newLhs = Iterator.listSum(newTerms);
 			newLhs = Simplify.simplify(newLhs);
 			denominator = denominatorExpression(newLhs, variable);
 		}
