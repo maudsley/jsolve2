@@ -421,7 +421,7 @@ public class Simplify {
 		}
 		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
 		Double factorValue = factor.getSymbolAsFloat();
-		if (Math.floor(factorValue) == factorValue) {
+		if (factorValue != null && Math.floor(factorValue) == factorValue) {
 			return new Expression("0");
 		}
 		Double value = arg.getSymbolAsFloat();
@@ -451,7 +451,7 @@ public class Simplify {
 		}
 		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
 		Double factorValue = factor.getSymbolAsFloat();
-		if (Math.floor(factorValue) == factorValue) {
+		if (factorValue != null && Math.floor(factorValue) == factorValue) {
 			if (factor.getSymbolAsInteger() % 2 == 0) {
 				return new Expression("1");
 			} else {
