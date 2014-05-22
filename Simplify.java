@@ -196,6 +196,10 @@ public class Simplify {
 			return new Expression("1"); /* x / x = 1 */
 		}
 
+		if (lhs.isOne() && rhs.toString().equals("i")) { /* 1/i -> i^(-1) */
+			return Expression.exponentiate(rhs, new Expression("-1"));
+		}
+
 		Long lhsValue = lhs.getSymbolAsInteger();
 		Long rhsValue = rhs.getSymbolAsInteger();
 		
@@ -320,7 +324,7 @@ public class Simplify {
 				if (baseValue > 0) {
 					return exactExponentation(baseValue, expNumValue, expDenValue);
 				} else if (baseValue == -1) {
-					Expression pi = new Expression("pi"); /* ln(-1) = pi */
+					Expression pi = new Expression("pi"); /* ln(-1) = pi*i */
 					Expression complexExponent = Expression.multiply(pi, exponent);
 					return Expression.exponentiate(complexExponent);
 				}
@@ -330,9 +334,9 @@ public class Simplify {
 		if (base.isSymbol()) {
 			if (base.getSymbol().equals("i")) {
 				Long power = exponent.getSymbolAsInteger();
-				if (power != null && power >= 0) {
-					String[] powers = {"1", "i", "-1", "-i"};
-					return new Expression(powers[power.intValue()%4]);
+				if (power != null) { /* i^x = e^(ln(i)*x) = e^(pi/2*i*x) */
+					Expression halfPi = Expression.divide(new Expression("pi"), new Expression("2"));
+					return Expression.exponentiate(Expression.multiply(halfPi, new Expression(exponent.getSymbolAsFloat())));
 				}
 			} else if (base.getSymbol().equals("e")) {
 				List<Expression> exponentFactors = Iterator.getFactors(exponent, 5);
@@ -407,12 +411,7 @@ public class Simplify {
 		String[][] table = {
 			{"0", "0"},
 			{"pi/3", "3^(1/2)/2"},
-			{"pi/2", "1"},
-			{"pi", "0"},
-			{"pi*2/3", "3^(1/2)/2"},
-			{"pi*3/2", "-1"},
-			{"pi*2", "0"},
-			{"pi*3", "0"},
+			{"pi*2/3", "3^(1/2)/2"}
 		};
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
@@ -420,9 +419,22 @@ public class Simplify {
 			}
 		}
 		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
-		Double factorValue = factor.getSymbolAsFloat();
-		if (factorValue != null && Math.floor(factorValue) == factorValue) {
+		Long factorValue = factor.getSymbolAsInteger();
+		if (factorValue != null) {
 			return new Expression("0");
+		}
+		Expression halfPi = Expression.divide(new Expression("pi"), new Expression("2"));
+		factor = Simplify.simplify(Expression.divide(arg, halfPi));
+		factorValue = factor.getSymbolAsInteger();
+		if (factorValue != null) {
+			String[] values = {"0", "1", "0", "-1"};
+			int index = factorValue.intValue();
+			if (index < 0) {
+				index = 3 - (3 - index) % 4;
+				return new Expression(values[index]);
+			} else {
+				return new Expression(values[index%4]);
+			}
 		}
 		Double value = arg.getSymbolAsFloat();
 		if (value != null) {
@@ -437,12 +449,7 @@ public class Simplify {
 		String[][] table = {
 			{"0", "1"},
 			{"pi/3", "1/2"},
-			{"pi/2", "0"},
-			{"pi", "-1"},
-			{"pi*2/3", "-1/2"},
-			{"pi*3/2", "0"},
-			{"pi*2", "1"},
-			{"pi*3", "-1"}
+			{"pi*2/3", "-1/2"}
 		};
 		for (String[] pair : table) {
 			if (Canonicalizer.compare(Parser.parse(pair[0]), arg)) {
@@ -450,12 +457,25 @@ public class Simplify {
 			}
 		}
 		Expression factor = Simplify.simplify(Expression.divide(arg, new Expression("pi")));
-		Double factorValue = factor.getSymbolAsFloat();
-		if (factorValue != null && Math.floor(factorValue) == factorValue) {
+		Long factorValue = factor.getSymbolAsInteger();
+		if (factorValue != null) {
 			if (factor.getSymbolAsInteger() % 2 == 0) {
 				return new Expression("1");
 			} else {
 				return new Expression("-1");
+			}
+		}
+		Expression halfPi = Expression.divide(new Expression("pi"), new Expression("2"));
+		factor = Simplify.simplify(Expression.divide(arg, halfPi));
+		factorValue = factor.getSymbolAsInteger();
+		if (factorValue != null) {
+			String[] values = {"1", "0", "-1", "0"};
+			int index = factorValue.intValue();
+			if (index < 0) {
+				index = 3 - (3 - index) % 4;
+				return new Expression(values[index]);
+			} else {
+				return new Expression(values[index%4]);
 			}
 		}
 		Double value = arg.getSymbolAsFloat();
