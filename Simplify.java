@@ -196,8 +196,8 @@ public class Simplify {
 			return new Expression("1"); /* x / x = 1 */
 		}
 
-		if (lhs.isOne() && rhs.toString().equals("i")) { /* 1/i -> i^(-1) */
-			return Expression.exponentiate(rhs, new Expression("-1"));
+		if (lhs.isOne() && rhs.toString().equals("i")) { /* 1/i -> -i */
+			return Expression.negate(rhs);
 		}
 
 		Long lhsValue = lhs.getSymbolAsInteger();

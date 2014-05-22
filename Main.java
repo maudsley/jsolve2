@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "a/(x+b) + c*x = d";
+				expression = "1/x = i";
 			}
 			
 			Parser parser = null;
