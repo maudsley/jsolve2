@@ -38,35 +38,13 @@ public class Main {
 			}
 
 			Expression input = parser.getExpression();
-
-			boolean simplify = false;
-			
-			if (args.length != 0 && args[0].equals("simplify")) {
-				simplify = true;
-			}
 			
 			if (!input.getType().equals(Expression.Type.NODE_EQUALS)) {
-				simplify = true;
-			}
-			
-			if (simplify) {
-				Expression result = Simplify.simplify(input);
-				result = Expander.expand(result, "x");
-				result = Collector.collect(result, "x");
-				result = Simplify.simplify(result);
+				Expression result = Simplify.evaluate(input);
 				System.out.println(input.toString() + " -> " + result.toString());
 				continue;
 			}
-			
-			if (args.length != 0 && args[0].equals("expand")) {
-				Expression result = Simplify.simplify(input);
-				result = Expander.expand(result, "x");
-				result = Collector.normalizeExponents(result);
-				result = Simplify.simplify(result);
-				System.out.println(input.toString() + " -> " + result.toString());
-				continue;
-			}
-			
+	
 			List<Expression> solutions = Solver.solve(input, "x");
 
 			if (solutions.isEmpty()) {

@@ -591,5 +591,13 @@ public class Simplify {
 		return result;
 	}
 	
+	static Expression evaluate(Expression expression) {
+		Expression result = Simplify.simplify(expression);
+		result = Expander.expand(result, "x");
+		result = Collector.collect(result, "x");
+		result = Simplify.simplify(result);
+		return result;
+	}
+	
 	List<Expression> identities;
 }

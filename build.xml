@@ -13,4 +13,11 @@
             </classpath>
         </java>
     </target>
+    <target name="test">
+        <java classname="jsolve.Tests">
+            <classpath>
+                <pathelement path="${basedir}/bin"/>
+            </classpath>
+        </java>
+    </target>
 </project>
