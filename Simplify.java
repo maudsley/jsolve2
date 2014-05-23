@@ -12,6 +12,41 @@ public class Simplify {
 		}
 	}
 	
+	static Expression getBase(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+			return getBase(expression.getLeft());
+		}
+		return expression;
+	}
+
+	static Expression getExponent(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+			Expression exponent = getExponent(expression.getLeft());
+			if (exponent.isOne()) {
+				return expression.getRight();
+			} else {
+				return Expression.multiply(expression.getRight(), exponent);
+			}
+		}
+		return new Expression("1");
+	}
+	
+	static Expression getNumerator(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression.getLeft();
+		} else {
+			return expression;
+		}
+	}
+	
+	static Expression getDenominator(Expression expression) {
+		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
+			return expression.getRight();
+		} else {
+			return new Expression("1");
+		}
+	}
+	
 	Expression signSubstitute(Expression where, Expression with) {
 		if (with.getType().equals(Expression.Type.NODE_ADD)) {
 			return Substitution.substitute(where, new Expression("_s"), new Expression("1"));
@@ -233,41 +268,6 @@ public class Simplify {
 		}
 
 		return result;
-	}
-	
-	Expression getBase(Expression expression) {
-		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
-			return getBase(expression.getLeft());
-		}
-		return expression;
-	}
-
-	Expression getExponent(Expression expression) {
-		if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
-			Expression exponent = getExponent(expression.getLeft());
-			if (exponent.isOne()) {
-				return expression.getRight();
-			} else {
-				return Expression.multiply(expression.getRight(), exponent);
-			}
-		}
-		return new Expression("1");
-	}
-	
-	Expression getNumerator(Expression expression) {
-		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
-			return expression.getLeft();
-		} else {
-			return expression;
-		}
-	}
-	
-	Expression getDenominator(Expression expression) {
-		if (expression.getType().equals(Expression.Type.NODE_DIVIDE)) {
-			return expression.getRight();
-		} else {
-			return new Expression("1");
-		}
 	}
 	
 	Expression exactExponentation(Double base, Double expNumerator, Double expDenominator) {

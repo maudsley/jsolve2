@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "3^(-1) - 1/3";//x^3 + x^2 + x + 1 = 0";
+				expression = "x^3 + x^2 + x + 1 = 0";
 			}
 			
 			Parser parser = null;

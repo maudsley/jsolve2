@@ -300,6 +300,10 @@ public class Solver {
 		sub = Collector.collect(sub, "_x");
 		sub = Substitution.substitute(sub, new Expression("_x"), polynomial.getVariable());
 		sub = Simplify.simplify(sub);
+		sub = Expander.expand(sub, "_x");
+		sub = Simplify.simplify(sub);
+		sub = Collector.collect(sub, "_x");
+		sub = Simplify.simplify(sub);
 		polynomial = new Polynomial(sub, variable);
 		
 		if (!polynomial.isValid() || polynomial.getDegree() != 2) {

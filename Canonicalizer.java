@@ -37,6 +37,18 @@ public class Canonicalizer {
 		if (result.isBinary()) {
 			result.setLeft(canonicalize(result.getLeft()));
 			result.setRight(canonicalize(result.getRight()));
+			if (result.getType().equals(Expression.Type.NODE_DIVIDE)) {
+				if (result.getLeft().isOne()) { /* 1/x -> x^(-1) */
+					result = Expression.exponentiate(result.getRight(), new Expression("-1"));
+				}
+			}
+			if (result.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+				if (!Simplify.getBase(result).toString().equals("e")) { /* a^b -> e^(ln(a)*b) */
+					Expression logBase = Expression.logarithm(new Expression("e"), Simplify.getBase(result));
+					Expression logBaseExp = Expression.multiply(logBase, Simplify.getExponent(result));
+					result = Expression.exponentiate(new Expression("e"), logBaseExp);
+				}
+			}
 		} else if (result.isUnary()) {
 			result.setChild(canonicalize(result.getChild()));
 		}
