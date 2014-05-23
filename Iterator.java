@@ -199,12 +199,7 @@ public class Iterator {
 		void factor(Expression expression, boolean inverse) {
 			if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 				if (expression.getRight().isSymbol() && expandLimit_ != 0) {
-					Integer exponent;
-					try {
-						exponent = Integer.parseInt(expression.getRight().toString());
-					} catch (NumberFormatException e) {
-						exponent = null;
-					}
+					Long exponent = expression.getRight().getSymbolAsInteger();
 					if (exponent != null && exponent > 0 && exponent < expandLimit_) {
 						/* return x^2 as x*x in two calls */
 						for (int i = 0; i < exponent; ++i) {
