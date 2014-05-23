@@ -343,7 +343,7 @@ public class Simplify {
 				List<Expression> realFactors = new ArrayList<Expression>();
 				boolean imaginary = false;
 				for (Expression factor : exponentFactors) {
-					if (factor.toString().equals("i")) {
+					if (!imaginary && factor.toString().equals("i")) {
 						imaginary = true;
 					} else {
 						realFactors.add(factor);
@@ -389,6 +389,9 @@ public class Simplify {
 	}
 	
 	Expression foldLogarithm(Expression lhs, Expression rhs) {
+		if (rhs.isOne()) { /* log_n(1) = 0 */
+			return new Expression("0");
+		}
 		Double lhsValue = lhs.getSymbolAsFloat();
 		Double rhsValue = rhs.getSymbolAsFloat();
 		if (lhsValue != null && rhsValue != null) {

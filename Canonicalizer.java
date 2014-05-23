@@ -35,11 +35,6 @@ public class Canonicalizer {
 	static Expression canonicalize(Expression expression) {
 		Expression result = expression.copy();
 		if (result.isBinary()) {
-			if (result.getType().equals(Expression.Type.NODE_DIVIDE)) {
-				if (result.getLeft().isOne()) { /* 1/x -> x^-1 */
-					result = Expression.exponentiate(result.getRight(), new Expression("-1"));
-				}
-			}
 			result.setLeft(canonicalize(result.getLeft()));
 			result.setRight(canonicalize(result.getRight()));
 		} else if (result.isUnary()) {
