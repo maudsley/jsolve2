@@ -101,7 +101,11 @@ public class Solver {
 			Expression solution = results.get(i);
 			solution = Simplify.simplify(solution);
 			if (solution.isDegenerate()) {
-				continue;
+				continue; /* solution contains zero divide */
+			}
+			Expression sub = Substitution.substitute(expression, new Expression("x"), solution);
+			if (sub.isDegenerate()) {
+				continue; /* solution causes zero divide */
 			}
 			String hash = Canonicalizer.toString(solution);
 			if (duplicates.get(hash) == null) {
