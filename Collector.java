@@ -58,6 +58,15 @@ public class Collector {
 		Map<String, ExpressionMultiple> factors_;
 	}
 
+	static Expression collect(Expression expression) {
+		Expression result = expression.copy();
+		List<String> variables = Substitution.getSymbols(expression);
+		for (String variable : variables) {
+			result = collect(result, variable);
+		}
+		return result;
+	}
+
 	static Expression collect(Expression expression, String variable) {
 		expression = normalizeExponents(expression);
 		Map<String, ExpressionMap> map = new HashMap<String, ExpressionMap>();

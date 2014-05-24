@@ -618,7 +618,7 @@ public class Simplify {
 		Expression result = Simplify.simplify(expression);
 		result = Expander.expand(result, "x");
 		result = Expander.expand(result, "i");
-		result = Collector.collect(result, "x");
+		result = Collector.collect(result);
 		result = Simplify.simplify(result);
 		return result;
 	}
