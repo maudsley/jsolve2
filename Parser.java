@@ -49,6 +49,9 @@ public class Parser {
 				Expression expression = tokenToNode(token, acceptUnaryOperator);
 				Operator a = Operator.fromExpression(expression);
 				if (a.getArity().equals(Operator.Arity.UNARY_RIGHT)) {
+					if (operands.size() < 1) {
+						throw new Error("expected operand");
+					}
 					expression.setChild(operands.pop());
 					operands.push(expression);
 					acceptUnaryOperator = false;

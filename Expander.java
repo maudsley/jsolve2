@@ -4,6 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Expander {
+	static Expression expand(Expression expression) {
+		Expression result = expand(expression, "x");
+		List<String> variables = Substitution.getSymbols(expression);
+		for (String variable : variables) {
+			result = expand(result, variable);
+		}
+		return result;
+	}
+	
 	static Expression expand(Expression expression, String variable) {
 		/* iterate while the expression keeps changing */
 		String hash = Canonicalizer.toString(expression);
