@@ -59,7 +59,7 @@ public class Collector {
 	}
 
 	static Expression collect(Expression expression) {
-		Expression result = expression.copy();
+		Expression result = collect(expression, "x");
 		List<String> variables = Substitution.getSymbols(expression);
 		for (String variable : variables) {
 			result = collect(result, variable);
