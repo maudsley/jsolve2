@@ -25,12 +25,12 @@ If the input is an expression without an equals sign, the program will try to si
 
 The following operators are supported:
 
- * + (addition)
- * - (subtraction)
- * * (multiplication)
- * / (divison)
- * ^ (exponentation)
- * ! (factorial)
+ * Addition (+)
+ * Subtraction (-)
+ * Multiplication (*)
+ * Divison (/)
+ * Exponentation (^)
+ * Factorial (!)
 
 Functions, e.g trig functions, are not supported. To input sqrt(x) use x^(1/2).
 
