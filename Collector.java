@@ -176,9 +176,6 @@ public class Collector {
 			for (ExpressionMultiple factor : exponents.values()) {
 				if (factor.getMultiple() == 1) {
 					product.add(factor.getChild());
-//				} else if (factor.getMultiple() == -1) {
-//					Expression reciprocal = Expression.divide(new Expression("1"), factor.getChild());
-//					product.add(reciprocal);
 				} else if (factor.getMultiple() < 0) {
 					Double absPower = -1.0 * factor.getMultiple();
 					Expression power = Expression.exponentiate(factor.getChild(), new Expression(absPower));

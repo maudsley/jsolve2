@@ -228,6 +228,25 @@ public class Expression {
 		}
 		return false;
 	}
+	
+	boolean isDegenerate() {
+		if (isBinary()) {
+			if (getLeft().isDegenerate()) {
+				return true;
+			}
+			if (getRight().isDegenerate()) {
+				return true;
+			}
+			if (Simplify.getDenominator(this).isZero()) {
+				return true; /* zero divide */
+			}
+		} else if (isUnary()) {
+			if (getChild().isDegenerate()) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	static Expression equals(Expression a, Expression b) {
 		Expression result = new Expression(Type.NODE_EQUALS);

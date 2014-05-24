@@ -39,12 +39,17 @@ public class Main {
 
 			Expression input = parser.getExpression();
 			
+			if (input.isDegenerate()) {
+				System.out.println(input.toString() + " -> Input error: zero divide");
+				continue;
+			}
+			
 			if (!input.getType().equals(Expression.Type.NODE_EQUALS)) {
 				Expression result = Simplify.evaluate(input);
 				System.out.println(input.toString() + " -> " + result.toString());
 				continue;
 			}
-	
+
 			List<Expression> solutions = Solver.solve(input, "x");
 
 			if (solutions.isEmpty()) {

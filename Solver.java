@@ -100,6 +100,9 @@ public class Solver {
 		for (int i = 0; i < results.size(); ++i) {
 			Expression solution = results.get(i);
 			solution = Simplify.simplify(solution);
+			if (solution.isDegenerate()) {
+				continue;
+			}
 			String hash = Canonicalizer.toString(solution);
 			if (duplicates.get(hash) == null) {
 				solutions.add(solution);
@@ -108,18 +111,6 @@ public class Solver {
 		}
 		
 		return solutions;
-	}
-	
-	static int solvedCount(List<Equation> equations, String variable) {
-		int count = 0;
-		for (Equation equation : equations) {
-			if (equation.getLeft().isSymbol()) {
-				if (equation.getLeft().getSymbol().equals(variable)) {
-					count++;
-				}
-			}
-		}
-		return count;
 	}
 
 	static List<Equation> factorize(Expression lhs, Expression rhs, String variable) {
