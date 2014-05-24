@@ -26,7 +26,7 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "+*a";
+				expression = "";
 			}
 			
 			Parser parser = null;
@@ -38,6 +38,9 @@ public class Main {
 			}
 
 			Expression input = parser.getExpression();
+			if (input == null) {
+				continue;
+			}
 			
 			if (input.isDegenerate()) {
 				System.out.println(input.toString() + " -> Input error: zero divide");

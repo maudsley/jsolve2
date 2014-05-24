@@ -617,6 +617,7 @@ public class Simplify {
 	static Expression evaluate(Expression expression) {
 		Expression result = Simplify.simplify(expression);
 		result = Expander.expand(result, "x");
+		result = Expander.expand(result, "i");
 		result = Collector.collect(result, "x");
 		result = Simplify.simplify(result);
 		return result;
