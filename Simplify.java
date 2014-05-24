@@ -131,8 +131,6 @@ public class Simplify {
 			return rhs; /* 0 + x = x */
 		} else if (rhs.isZero()) {
 			return lhs; /* x + 0 = x */
-		} else if (Canonicalizer.compare(lhs, rhs)) {
-			return Expression.multiply(new Expression("2"), lhs);
 		}
 		Double left = lhs.getSymbolAsFloat();
 		Double right = rhs.getSymbolAsFloat();

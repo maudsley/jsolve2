@@ -198,15 +198,18 @@ public class Iterator {
 		}
 		void factor(Expression expression, boolean inverse) {
 			if (expression.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
-				if (expression.getRight().isSymbol() && expandLimit_ != 0) {
-					Long exponent = expression.getRight().getSymbolAsInteger();
-					if (exponent != null && exponent > 0 && exponent < expandLimit_) {
-						/* return x^2 as x*x in two calls */
-						for (int i = 0; i < exponent; ++i) {
-							Iterator.productIterator(expression.getLeft(), inverse, this);
-						}
-						return;
+				Long exponent = expression.getRight().getSymbolAsInteger();
+				if (exponent != null && exponent > 0 && exponent < expandLimit_) {
+					/* return x^2 as x*x in two calls */
+					for (int i = 0; i < exponent; ++i) {
+						Iterator.productIterator(expression.getLeft(), inverse, this);
 					}
+					return;
+				} else if (exponent != null && exponent < 0) {
+					exponent = -exponent;
+					Expression factor = Expression.exponentiate(expression.getLeft(), new Expression(exponent.toString()));
+					Iterator.productIterator(factor, !inverse, this);
+					return;
 				}
 			}
 			if (inverse) {

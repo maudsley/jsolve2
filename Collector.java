@@ -132,7 +132,20 @@ public class Collector {
 			Map<String, ExpressionMultiple> exponents = new HashMap<String, ExpressionMultiple>();
 			List<Expression> factors = Iterator.getFactors(term, 5);
 			for (Expression factor : factors) {
-				if (factor.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
+				if (factor.getType().equals(Expression.Type.NODE_DIVIDE)) {
+					if (factor.getRight().isSymbol()) {
+						if (factor.getLeft().isOne()) {
+							Expression base = factor.getRight();
+							ExpressionMultiple value = exponents.get(base.toString());
+							if (value == null) {
+								value = new ExpressionMultiple(base);
+							}
+							value.raise(-1);
+							exponents.put(base.toString(), value);
+							continue;
+						}
+					}
+				} else if (factor.getType().equals(Expression.Type.NODE_EXPONENTIATE)) {
 					if (factor.getRight().isSymbol()) {
 						Expression base = factor.getLeft();
 						Integer power;
@@ -163,6 +176,13 @@ public class Collector {
 			for (ExpressionMultiple factor : exponents.values()) {
 				if (factor.getMultiple() == 1) {
 					product.add(factor.getChild());
+//				} else if (factor.getMultiple() == -1) {
+//					Expression reciprocal = Expression.divide(new Expression("1"), factor.getChild());
+//					product.add(reciprocal);
+				} else if (factor.getMultiple() < 0) {
+					Double absPower = -1.0 * factor.getMultiple();
+					Expression power = Expression.exponentiate(factor.getChild(), new Expression(absPower));
+					product.add(Expression.divide(new Expression("1"), power));
 				} else {
 					product.add(factor.getExpression(Expression.Type.NODE_EXPONENTIATE));
 				}
