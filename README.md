@@ -41,6 +41,9 @@ Examples
 * a*x^2 + b*x + c = 0
 * e^(2*x) / (a + e^x) = y
 
-To run unit tests use:
+How to run tests
+----------------
+
+To run test cases use:
 
 ant && ant test
