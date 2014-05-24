@@ -19,22 +19,28 @@ public class Parser {
 	}
 
 	Parser(String expression) throws Error {
-		expression_ = parseExpression(new Lexer(expression));
+		expression_ = parseExpression(new Lexer(expression), 0);
 	}
 
-	Expression parseExpression(Lexer scanner) {
+	Expression parseExpression(Lexer scanner, int depth) throws Error {
 		Deque<Expression> operands = new ArrayDeque<Expression>();
 		Deque<Expression> operators = new ArrayDeque<Expression>();
 		Token token = scanner.getNextToken();
 		if (token == null) {
+			if (depth != 0) {
+				throw new Error("expected closing brace");
+			}
 			return null;
 		}
 		boolean acceptUnaryOperator = true;
 		while (token != null) {
 			if (token.getType().equals(Token.Type.TOKEN_CLOSE_PARENTHESES)) {
+				if (depth == 0) {
+					throw new Error("unexpected closing brace");
+				}
 				break;
 			} else if (token.getType().equals(Token.Type.TOKEN_OPEN_PARENTHESES)) {
-				operands.push(parseExpression(scanner));
+				operands.push(parseExpression(scanner, depth+1));
 				acceptUnaryOperator = false;
 			} else if (token.getType().equals(Token.Type.TOKEN_SYMBOL)) {
 				operands.push(new Expression(token.getSymbol()));
@@ -61,9 +67,15 @@ public class Parser {
 						}
 						Expression operand = operators.pop();
 						if (Operator.isBinary(operand)) {
+							if (operands.size() < 2) {
+								throw new Error("expected operand");
+							}
 							operand.setRight(operands.pop());
 							operand.setLeft(operands.pop());
 						} else {
+							if (operands.size() < 1) {
+								throw new Error("expected operand");
+							}
 							operand.setChild(operands.pop());
 						}
 						operands.push(operand);
@@ -74,15 +86,30 @@ public class Parser {
 			}
 			token = scanner.getNextToken();
 		}
+		if (token == null && depth != 0) {
+			throw new Error("expected closing brace");
+		}
 		while (operators.size() > 0) {
 			Expression operand = operators.pop();
 			if (Operator.isBinary(operand)) {
+				if (operands.size() < 2) {
+					throw new Error("expected operand");
+				}
 				operand.setRight(operands.pop());
 				operand.setLeft(operands.pop());
 			} else {
+				if (operands.size() < 1) {
+					throw new Error("expected operand");
+				}
 				operand.setChild(operands.pop());
 			}
 			operands.push(operand);
+		}
+		if (operands.size() > 1) {
+			throw new Error("expected operator");
+		}
+		if (operators.size() != 0) {
+			throw new Error("expected operand");
 		}
 		return operands.pop();
 	}

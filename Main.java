@@ -26,14 +26,14 @@ public class Main {
 			}
 			
 			if (args.length != 0 && args[0].equals("debug")) {
-				expression = "(x-a)*(x-b)*(x-c) = 0";
+				expression = "+*a";
 			}
 			
 			Parser parser = null;
 			try {
 				parser = new Parser(expression);
 			} catch (Error e) {
-				System.out.println(e.getMessage());
+				System.out.println(expression + " -> Parse error: " + e.getMessage());
 				continue;
 			}
 
