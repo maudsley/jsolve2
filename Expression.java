@@ -15,7 +15,8 @@ public class Expression {
 		NODE_FACTORIAL_INVERSE,
 		NODE_LOGARITHM,
 		NODE_SINE,
-		NODE_COSINE
+		NODE_COSINE,
+		NODE_LAMBERTW
 	}
 
 	Expression(Type type) {
@@ -139,6 +140,8 @@ public class Expression {
 				return "Sin(" + child + ")";
 			case NODE_COSINE:
 				return "Cos(" + child + ")";
+			case NODE_LAMBERTW:
+				return "LambertW(" + child + ")";
 			default:
 				return "(?" + child + ")";
 			}
@@ -240,6 +243,11 @@ public class Expression {
 			if (Simplify.getDenominator(this).isZero()) {
 				return true; /* zero divide */
 			}
+			if (type_.equals(Expression.Type.NODE_LOGARITHM)) {
+				if (getRight().isZero()) {
+					return true; /* log_n(0) */
+				}
+			}
 		} else if (isUnary()) {
 			if (getChild().isDegenerate()) {
 				return true;
@@ -305,6 +313,12 @@ public class Expression {
 		Expression result = new Expression(Type.NODE_LOGARITHM);
 		result.setLeft(a);
 		result.setRight(b);
+		return result;
+	}
+	
+	static Expression lambertW(Expression x) {
+		Expression result = new Expression(Expression.Type.NODE_LAMBERTW);
+		result.setChild(x);
 		return result;
 	}
 	

@@ -391,6 +391,8 @@ public class Simplify {
 	Expression foldLogarithm(Expression lhs, Expression rhs) {
 		if (rhs.isOne()) { /* log_n(1) = 0 */
 			return new Expression("0");
+		} else if (Canonicalizer.compare(lhs, rhs)) {
+			return new Expression("1"); /* log_n(n) = 1 */
 		}
 		Double lhsValue = lhs.getSymbolAsFloat();
 		Double rhsValue = rhs.getSymbolAsFloat();
@@ -489,6 +491,15 @@ public class Simplify {
 		result.setChild(foldConstants(arg));
 		return result;
 	}
+	
+	Expression foldLambertW(Expression arg) {
+		if (arg.isZero()) { /* W(0) = 0 */
+			return new Expression("0");
+		} else if (arg.toString().equals("e")) {
+			return new Expression("1"); /* W(e) = 1 */
+		}
+		return Expression.lambertW(foldConstants(arg));
+	}
 
 	Expression foldConstants(Expression expression) {
 		switch (expression.getType()) {
@@ -512,6 +523,8 @@ public class Simplify {
 			return foldSin(expression.getChild());
 		case NODE_COSINE:
 			return foldCos(expression.getChild());
+		case NODE_LAMBERTW:
+			return foldLambertW(expression.getChild());
 		default:
 			return expression;
 		}

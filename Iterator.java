@@ -227,4 +227,14 @@ public class Iterator {
 		Iterator.productIterator(product, collector);
 		return collector.factors;
 	}
+	
+	static boolean hasFactor(Expression expression, Expression factor) {
+		List<Expression> factors = Iterator.getFactors(expression, 0);
+		for (Expression search : factors) {
+			if (Canonicalizer.compare(search, factor)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

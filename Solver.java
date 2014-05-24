@@ -196,6 +196,15 @@ public class Solver {
 			}
 		}
 		
+		Expression lambertWSolve = solveLambertW(Expression.subtract(lhs, rhs), variable);
+		if (lambertWSolve != null) {
+			lambertWSolve = Expression.subtract(new Expression(variable), lambertWSolve);
+			if (isSolvable(lambertWSolve, variable)) {
+				results.add(new Equation(lambertWSolve, new Expression("0")));
+				return results;
+			}
+		}
+		
 		return results;
 	}
 	
@@ -355,6 +364,58 @@ public class Solver {
 			denominator = denominatorExpression(newLhs, variable);
 		}
 		return Expression.subtract(newLhs, newRhs);
+	}
+
+	static Expression solveLambertW(Expression expression, String variable) {
+		Expression result = Collector.collect(expression, variable);
+		result = Simplify.simplify(result);
+		boolean normalize = false;
+		List<Expression> newTerms = new ArrayList<Expression>();
+		List<Expression> terms = Iterator.getTerms(result);
+		for (Expression term : terms) {
+			if (Iterator.hasFactor(term, new Expression(variable))) {
+				Expression norm = Expression.divide(term, new Expression(variable));
+				norm = Simplify.simplify(norm);
+				if (Iterator.hasFactor(norm, new Expression(variable))) {
+					return null; /* failed to eliminate factor */
+				}
+				if (!Simplify.getExponent(norm).toString().equals(variable)) {
+					if (normalize) {
+						return null; /* unable to solve */
+					}
+					normalize = true; /* an expression of the form a^x=b*x */
+				}
+				newTerms.add(norm);
+			} else {
+				newTerms.add(term);
+			}
+		}
+		Expression coefficient = newTerms.get(0);
+		Expression base = Simplify.getBase(newTerms.get(1));
+		Expression exponent = Simplify.getExponent(newTerms.get(1));
+		if (!exponent.toString().equals(variable)) {
+			coefficient = newTerms.get(1);
+			base = Simplify.getBase(newTerms.get(0));
+			exponent = Simplify.getExponent(newTerms.get(0));
+			if (!exponent.toString().equals(variable)) {
+				return null; /* unable to solve */
+			}
+		}
+		if (normalize) { /* a^x=b*x -> a^x/x=b -> x/a^x=1/b -> -u=x and u*a^u=-1/b */
+			coefficient = Expression.divide(new Expression("1"), coefficient);
+		} else { /* we actually deal with a^x-b*x, not a^x=b*x */
+			coefficient = Expression.negate(coefficient);
+		}
+		/* u*a^u=c -> u*e^[ln(a)*u]=c -> ln(a)*u*e^[ln(a)*u]=ln(a)*c */
+		Expression logBase = Expression.logarithm(new Expression("e"), base);
+		coefficient = Expression.multiply(coefficient, logBase);
+		/* k*x*e^(k*x)=c -> x=W(c)/k */
+		result = Expression.lambertW(coefficient);
+		result = Expression.divide(result, logBase);
+		if (normalize) { /* -u=x -> x=-u */
+			result = Expression.negate(result);
+		}
+		return Simplify.simplify(result);
 	}
 
 	static List<Expression> inverseLeft(Expression lhs, Expression rhs, String variable) {
