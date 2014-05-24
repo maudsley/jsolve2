@@ -147,7 +147,8 @@ public class Solver {
 			if (factors.size() > 1) {
 				for (Expression factor : factors) {
 					if (factor.contains(variable)) {
-						List<Expression> solutions = Solver.solve(factor, variable);
+						Expression equation = Expression.equals(factor, new Expression("0"));
+						List<Expression> solutions = Solver.solve(equation, variable);
 						for (Expression solution : solutions ) {
 							results.add(new Equation(new Expression(variable), solution));
 						}
