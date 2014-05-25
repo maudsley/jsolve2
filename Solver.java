@@ -252,17 +252,14 @@ public class Solver {
 		if (degree != 3) {
 			return results;
 		}
-		
-		Expression factored = solveCubic(polynomial, variable);
-		if (factored == null) {
-			return results;
+
+		List<Expression> solutions = solveCubic(polynomial, variable);
+		for (Expression solution : solutions) {
+			if (term != null) { /* reverse the substitution performed above */
+				solution = Expression.add(solution, term);
+			}
+			results.add(new Equation(new Expression(variable), solution));
 		}
-		
-		if (term != null) { /* reverse the substitution performed above */
-			factored = Expression.add(factored, term);
-		}
-		
-		results.add(new Equation(factored, new Expression("0")));
 
 		return results;
 	}
@@ -290,34 +287,47 @@ public class Solver {
 		return null; /* it failed */
 	}
 	
-	static Expression solveCubic(Polynomial polynomial, String variable) {
+	static List<Expression> solveCubic(Polynomial polynomial, String variable) {
 		/* make Vieta's substitution */
 		Expression linear = polynomial.getCoefficient(1);
 		Expression sub = Parser.parse("_x - _a/3*_x^(-1)");
 		sub = Substitution.substitute(sub, new Expression("_a"), linear);
-		sub = Substitution.substitute(polynomial.getExpression(), polynomial.getVariable(), sub);
+		Expression result = Substitution.substitute(polynomial.getExpression(), polynomial.getVariable(), sub);
 		
 		/* clearing the denominator turns this into a quadratic in x^3 */
 		Expression x3 = Parser.parse("_x^3");
-		sub = Expression.multiply(sub, x3);
-		sub = Simplify.simplify(sub);
-		sub = Expander.expand(sub, "_x");
-		sub = Collector.collect(sub, "_x");
-		sub = Substitution.substitute(sub, new Expression("_x"), polynomial.getVariable());
-		sub = Simplify.simplify(sub);
-		sub = Expander.expand(sub, "_x");
-		sub = Simplify.simplify(sub);
-		sub = Collector.collect(sub, "_x");
-		sub = Simplify.simplify(sub);
-		polynomial = new Polynomial(sub, variable);
+		result = Expression.multiply(result, x3);
 		
-		if (!polynomial.isValid() || polynomial.getDegree() != 2) {
+		/* fold the expression back into polynomial form */
+		result = Simplify.simplify(result);
+		result = Expander.expand(result, "_x");
+		result = Collector.collect(result, "_x");
+		result = Substitution.substitute(result, new Expression("_x"), polynomial.getVariable());
+		result = Simplify.simplify(result);
+		result = Expander.expand(result, "_x");
+		result = Simplify.simplify(result);
+		result = Collector.collect(result, "_x");
+		result = Simplify.simplify(result);
+
+		polynomial = new Polynomial(result, variable);
+		if (!polynomial.isValid()) {
 			return null;
 		}
 		
-		Expression result = solveQuadratic(polynomial, variable);
-		
-		return result;
+		if (polynomial.getDegree() == 2) {
+			/* a degree 2 polynomial in x^3 */
+			result = solveQuadratic(polynomial, variable);
+		}
+
+		result = Expression.equals(result, new Expression("0"));
+		List<Expression> roots = Solver.solve(result, variable);
+		List<Expression> solutions = new ArrayList<Expression>();
+		for (Expression root : roots) {
+			/* reverse Vieta's substitution */
+			solutions.add(Substitution.substitute(sub, new Expression("_x"), root));
+		}
+
+		return solutions;
 	}
 	
 	static Expression denominatorExpression(Expression expression, String variable) {
